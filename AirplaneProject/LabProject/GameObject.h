@@ -74,6 +74,7 @@ public:
 		}
 		return !alive;
 	}
+	void Animate(float fElapsedTime);
 public:
 	float totalMovement = 0;
 	bool alive = true;

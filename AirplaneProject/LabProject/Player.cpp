@@ -16,6 +16,9 @@ CPlayer::CPlayer()
 
 	m_xmf3CameraOffset = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	m_xmf3Velocity = XMFLOAT3(0.0f, 0.0f, 0.0f);
+
+	pBulletMesh = new CCubeMesh(1.0f, 1.0f, 1.0f);
+	pBulletMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(0.5f, 0.5f, 0.5f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 }
 
 CPlayer::~CPlayer()
@@ -116,6 +119,7 @@ void CPlayer::Update(float fTimeElapsed)
 		bullet->Animate(fTimeElapsed);
 		if (bullet->isDead())
 		{
+			std::cout << "test" << std::endl;
 			delete bullet;
 			bullet = nullptr;
 			iter = m_bullets.erase(iter);
@@ -123,15 +127,17 @@ void CPlayer::Update(float fTimeElapsed)
 		else
 			iter++;
 	}
+	if (m_pMesh)
+	{
+		m_pMesh->m_xmOOBB.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
+		XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+	}
 }
 
 void CPlayer::Fire()
 {
-	CCubeMesh *pObjectCubeMesh = new CCubeMesh(1.0f, 1.0f, 1.0f);
-	pObjectCubeMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(5.0f, 5.0f, 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
-
 	auto m_ppObjects = new CBullet();
-	m_ppObjects->SetMesh(pObjectCubeMesh);
+	m_ppObjects->SetMesh(pBulletMesh);
 	m_ppObjects->SetColor(RGB(255, 0, 0));
 	m_ppObjects->SetPosition(m_xmf3Position.x, m_xmf3Position.y, m_xmf3Position.z);
 	m_ppObjects->SetRotationAxis(XMFLOAT3(0.0f, 0.0f, 1.0f));

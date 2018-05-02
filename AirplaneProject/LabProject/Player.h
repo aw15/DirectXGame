@@ -24,6 +24,7 @@ public:
 
 	CCamera						*m_pCamera = NULL;
 	std::vector<CBullet*>        m_bullets;
+	CCubeMesh					*pBulletMesh;
 
 	int m_itemCount = 0;
 

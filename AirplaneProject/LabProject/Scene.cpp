@@ -122,6 +122,11 @@ void CScene::CheckObjectByObjectCollisions()
 				}
 			}
 		}
+		if (m_objects[i]->m_xmOOBB.Intersects(m_pPlayer->m_xmOOBB))
+		{
+			m_pPlayer->SetColor(m_objects[i]->m_dwColor);
+		}
+		
 
 		for (int j = (i + 1); j < m_objects.size(); j++)
 		{
@@ -199,6 +204,68 @@ void CScene::CheckObjectByWallCollisions()
 				break;
 		}
 	}
+	ContainmentType containType = m_pWallsObject->m_xmOOBB.Contains(m_pPlayer->m_xmOOBB);
+	switch (containType)
+	{
+	case DISJOINT:
+	{
+		int nPlaneIndex = -1;
+		for (int j = 0; j < 6; j++)
+		{
+			PlaneIntersectionType intersectType = m_pPlayer->m_xmOOBB.Intersects(XMLoadFloat4(&m_pWallsObject->m_pxmf4WallPlanes[j]));
+			if (intersectType == BACK)
+			{
+				nPlaneIndex = j;
+				break;
+			}
+		}
+		if (nPlaneIndex != -1)
+		{
+			XMVECTOR xmvNormal = XMVectorSet(m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].x, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].y, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].z, 0.0f);
+			XMVECTOR xmvReflect = XMVector3Reflect(XMLoadFloat3(&m_pPlayer->m_xmf3MovingDirection), xmvNormal);
+			XMStoreFloat3(&m_pPlayer->m_xmf3MovingDirection, xmvReflect);
+		}
+		break;
+	}
+	case INTERSECTS:
+	{
+		int nPlaneIndex = -1;
+		for (int j = 0; j < 6; j++)
+		{
+			PlaneIntersectionType intersectType = m_pPlayer->m_xmOOBB.Intersects(XMLoadFloat4(&m_pWallsObject->m_pxmf4WallPlanes[j]));
+			if (intersectType == INTERSECTING)
+			{
+				nPlaneIndex = j;
+				break;
+			}
+		}
+		if (nPlaneIndex != -1)
+		{
+			XMVECTOR xmvNormal = XMVectorSet(m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].x, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].y, m_pWallsObject->m_pxmf4WallPlanes[nPlaneIndex].z, 0.0f);
+			XMVECTOR xmvReflect = XMVector3Reflect(XMLoadFloat3(&m_pPlayer->m_xmf3MovingDirection), xmvNormal);
+			XMStoreFloat3(&m_pPlayer->m_xmf3MovingDirection, xmvReflect);
+			switch (nPlaneIndex)
+			{
+			case 0:
+				m_pPlayer->Move(DIR_RIGHT, 1.3f);
+				break;
+			case 1:
+				m_pPlayer->Move(DIR_LEFT, 1.3f);
+				break;
+			case 2:
+				m_pPlayer->Move(DIR_UP, 1.3f);
+				break;
+			case 3:
+				m_pPlayer->Move(DIR_DOWN, 1.3f);
+				break;
+			}
+		}
+		break;
+	}
+	case CONTAINS:
+		break;
+	}
+
 }
 
 void CScene::Animate(float fElapsedTime)
@@ -229,7 +296,7 @@ void CScene::Animate(float fElapsedTime)
 		pObjects->SetPosition(m_pPlayer->m_xmf3Position.x+rand()%20-10,m_pPlayer->m_xmf3Position.y+rand() % 20 - 10, m_pPlayer->m_xmf3Position.z+100);
 		pObjects->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 1.0f));
 		pObjects->SetRotationSpeed(90.0f);
-		pObjects->SetMovingDirection(m_pPlayer->m_xmf3Position);
+		pObjects->SetMovingDirection(XMFLOAT3(0, 0, -1));
 		pObjects->SetMovingSpeed(10.5f);
 
 		m_objects.push_back(pObjects);
@@ -245,7 +312,7 @@ void CScene::Animate(float fElapsedTime)
 		pObjects->SetPosition(m_pPlayer->m_xmf3Position.x + rand() % 20 - 10, m_pPlayer->m_xmf3Position.y + rand() % 20 - 10, m_pPlayer->m_xmf3Position.z + 100);
 		pObjects->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 1.0f));
 		pObjects->SetRotationSpeed(90.0f);
-		pObjects->SetMovingDirection(m_pPlayer->m_xmf3Position);
+		pObjects->SetMovingDirection(XMFLOAT3( 0,0,-1 ));
 		pObjects->SetMovingSpeed(20.5f);
 
 		m_objects.push_back(pObjects);
