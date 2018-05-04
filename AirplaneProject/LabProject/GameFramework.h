@@ -32,8 +32,11 @@ private:
     HBITMAP						m_hBitmapFrameBuffer = NULL;
 
 	CPlayer						*m_pPlayer = NULL;
+	CBoss					*m_pBoss = NULL;
 
 	CScene						*m_pScene = NULL;
+	
+	
 
 public:
 	void BuildFrameBuffer();
@@ -51,5 +54,6 @@ public:
 	POINT						m_ptOldCursorPos;
 
 	_TCHAR						m_pszFrameRate[50];
+	
 };
 

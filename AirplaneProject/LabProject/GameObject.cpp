@@ -40,11 +40,13 @@ CGameObject::CGameObject()
 CGameObject::CGameObject(CMesh *pMesh) : CGameObject()
 {
 	m_pMesh = pMesh; 
+	if (pMesh) pMesh->AddRef();
+	
 }
 
 CGameObject::~CGameObject(void)
 {
-	if (m_pMesh) m_pMesh->Release();
+	//if (m_pMesh) m_pMesh->Release();
 }
 
 void CGameObject::SetPosition(float x, float y, float z) 
@@ -238,9 +240,10 @@ void CBullet::Animate(float fElapsedTime)
 {
 	if (m_fRotationSpeed != 0.0f) Rotate(m_xmf3RotationAxis, m_fRotationSpeed * fElapsedTime);
 	if (m_fMovingSpeed != 0.0f) Move(m_xmf3MovingDirection, m_fMovingSpeed * fElapsedTime);
-
-	if (m_pMesh)
+	totalMovement += m_fMovingSpeed * fElapsedTime;
+	if (m_pMesh&&alive)
 	{
+		//std::cout << &m_xmOOBB << std::endl;
 		m_pMesh->m_xmOOBB.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
 		XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
 	}

@@ -51,7 +51,7 @@ void CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 							pExplosiveObject->m_bBlowingUp = true;
 						}
 						m_pPlayer->m_itemCount-=2;
-						std::cout << m_pPlayer->m_itemCount;
+						
 					}
 					break;
 				default:
@@ -107,9 +107,35 @@ void CScene::ReleaseObjects()
 void CScene::CheckObjectByObjectCollisions()
 {
 	for (auto& cube:m_objects) cube->m_pObjectCollided = NULL;
+	CGameObject* pickObject=nullptr;
+	float maxdist = 0;
+
 	for (int i = 0; i < m_objects.size(); i++)
 	{
-		for (auto& bullet:m_pPlayer->m_bullets)
+		XMVECTOR origin,direction;
+		float dist=0;
+		//m_ray.x *= m_objects[i]->m_xmf4x4World._41;
+		//m_ray.y *= m_objects[i]->m_xmf4x4World._42;
+		//m_ray.z *= m_objects[i]->m_xmf4x4World._43;
+
+		//origin = DirectX::XMLoadFloat3(&m_pPlayer->m_pCamera->m_xmf3Position);
+		//direction = DirectX::XMLoadFloat3(&m_ray);
+
+		//if (m_objects[i]->m_xmOOBB.Intersects(origin, direction, dist))
+		//{
+		//	if (maxdist < abs(dist))
+		//	{
+		//		pickObject = m_objects[i];
+		//	}
+		//}
+		//
+
+		////if (dist == 0)
+		////{
+		////	m_objects[i]->SetColor(RGB(255, 255, 0));
+		////}
+
+		for (auto& bullet:m_pPlayer->m_bullets)//총알과의 충돌체크.
 		{
 			if (m_objects[i]->m_xmOOBB.Intersects(bullet->m_xmOOBB))
 			{
@@ -151,6 +177,12 @@ void CScene::CheckObjectByObjectCollisions()
 			m_objects[i]->m_pObjectCollided = NULL;
 		}
 	}
+
+	if (pickObject)
+	{
+		pickObject->SetColor(RGB(255, 255, 0));
+	}
+
 }
 
 void CScene::CheckObjectByWallCollisions()
@@ -300,6 +332,9 @@ void CScene::Animate(float fElapsedTime)
 		pObjects->SetMovingSpeed(10.5f);
 
 		m_objects.push_back(pObjects);
+
+
+		m_pBoss->Fire();
 		spawnTime = 0;
 	}
 	if(redSpawnTime > 10)
@@ -318,6 +353,8 @@ void CScene::Animate(float fElapsedTime)
 		m_objects.push_back(pObjects);
 		redSpawnTime = 0;
 	}
+
+
 }
 
 void CScene::Render(HDC hDCFrameBuffer, CCamera *pCamera)

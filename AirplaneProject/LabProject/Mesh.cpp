@@ -390,3 +390,92 @@ CAirplaneMesh::~CAirplaneMesh()
 {
 }
 
+CBossMesh::CBossMesh(float fWidth, float fHeight, float fDepth) : CMesh(12)
+{
+	float fx = fWidth * 0.5f, fy = fHeight * 0.5f, fz = fDepth * 0.5f;
+
+	float x1 = fx * 0.2f, y1 = fy * 0.2f, x2 = fx * 0.1f, y3 = fy * 0.3f, y2 = ((y1 - (fy - y3)) / x1)*x2 + (fy - y3);
+	int i = 0;
+
+	//Upper Plane
+	CPolygon *pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), -fz));
+	pFace->SetVertex(1, CVertex(+x1, -y1, -fz));
+	pFace->SetVertex(2, CVertex(0.0f, 0.0f, -fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), -fz));
+	pFace->SetVertex(1, CVertex(0.0f, 0.0f, -fz));
+	pFace->SetVertex(2, CVertex(-x1, -y1, -fz));
+	SetPolygon(i++, pFace);
+
+
+
+	//Lower Plane
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), +fz));
+	pFace->SetVertex(1, CVertex(0.0f, 0.0f, +fz));
+	pFace->SetVertex(2, CVertex(+x1, -y1, +fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), +fz));
+	pFace->SetVertex(1, CVertex(-x1, -y1, +fz));
+	pFace->SetVertex(2, CVertex(0.0f, 0.0f, +fz));
+	SetPolygon(i++, pFace);
+
+	//Left Plane
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), +fz));
+	pFace->SetVertex(1, CVertex(0.0f, +(fy + y3), -fz));
+	pFace->SetVertex(2, CVertex(-x2, +y2, -fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), +fz));
+	pFace->SetVertex(1, CVertex(-x2, +y2, -fz));
+	pFace->SetVertex(2, CVertex(-x2, +y2, +fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(-x2, +y2, +fz));
+	pFace->SetVertex(1, CVertex(-x2, +y2, -fz));
+	pFace->SetVertex(2, CVertex(-fx, -y3, -fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(-x2, +y2, +fz));
+	pFace->SetVertex(1, CVertex(-fx, -y3, -fz));
+	pFace->SetVertex(2, CVertex(-fx, -y3, +fz));
+	SetPolygon(i++, pFace);
+
+	//Right Plane
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(0.0f, +(fy + y3), -fz));
+	pFace->SetVertex(1, CVertex(0.0f, +(fy + y3), +fz));
+	pFace->SetVertex(2, CVertex(+x2, +y2, -fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(+x2, +y2, -fz));
+	pFace->SetVertex(1, CVertex(0.0f, +(fy + y3), +fz));
+	pFace->SetVertex(2, CVertex(+x2, +y2, +fz));
+	SetPolygon(i++, pFace);
+	
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(+x2, +y2, -fz));
+	pFace->SetVertex(1, CVertex(+x2, +y2, +fz));
+	pFace->SetVertex(2, CVertex(+fx, -y3, -fz));
+	SetPolygon(i++, pFace);
+
+	pFace = new CPolygon(3);
+	pFace->SetVertex(0, CVertex(+fx, -y3, -fz));
+	pFace->SetVertex(1, CVertex(+x2, +y2, +fz));
+	pFace->SetVertex(2, CVertex(+fx, -y3, +fz));
+	SetPolygon(i++, pFace);
+}
+
+CBossMesh::~CBossMesh()
+{
+}

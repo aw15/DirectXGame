@@ -35,7 +35,7 @@ public:
 	void Move(float x, float y, float z);
 	void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
 	void SetCameraOffset(XMFLOAT3& xmf3CameraOffset);
-	void Update(float fTimeElapsed=0.016f);
+	virtual void Update(float fTimeElapsed=0.016f);
 	void Fire();
 
 	virtual void Render(HDC hDCFrameBuffer, CCamera *pCamera);
@@ -48,9 +48,9 @@ public:
 	virtual ~CAirplanePlayer();
 };
 
-class CTerrainPlayer : public CPlayer
+class CBoss : public CPlayer
 {
 public:
-	CTerrainPlayer();
-	virtual ~CTerrainPlayer();
+	using CPlayer::CPlayer;
+	void Update(float fTimeElapsed = 0.016f);
 };

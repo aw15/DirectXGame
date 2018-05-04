@@ -70,7 +70,7 @@ public:
 	{
 		if (totalMovement > BULLET_RANGE)
 		{
-			alive = false;
+			return alive;
 		}
 		return !alive;
 	}

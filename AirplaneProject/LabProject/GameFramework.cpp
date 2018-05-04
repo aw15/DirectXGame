@@ -48,6 +48,7 @@ void CGameFramework::ClearFrameBuffer(DWORD dwColor)
     HBRUSH hBrush = ::CreateSolidBrush(dwColor);
     HBRUSH hOldBrush = (HBRUSH)::SelectObject(m_hDCFrameBuffer, hBrush);
 	::Rectangle(m_hDCFrameBuffer, m_pPlayer->m_pCamera->m_Viewport.m_xStart, m_pPlayer->m_pCamera->m_Viewport.m_yStart, m_pPlayer->m_pCamera->m_Viewport.m_nWidth, m_pPlayer->m_pCamera->m_Viewport.m_nHeight);
+	/*std::cout << m_pPlayer->m_pCamera->m_Viewport.m_yStart << " " << m_pPlayer->m_pCamera->m_Viewport.m_nWidth << std::endl;*/
     ::SelectObject(m_hDCFrameBuffer, hOldBrush);
     ::DeleteObject(hBrush);
 }
@@ -140,11 +141,20 @@ void CGameFramework::BuildObjects()
 	m_pPlayer->SetColor(RGB(0, 0, 255));
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
 	
+	CBossMesh *pBossMesh = new CBossMesh(20.0f, 10.0f, 20.0f);
+	pBossMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	m_pBoss = new CBoss();
+	m_pBoss->SetPosition(10.0f, 0.0f, 900.0f);
+	m_pBoss->Rotate(0, 180, 0 );
+	m_pBoss->SetMesh(pBossMesh);
+	m_pBoss->SetColor(RGB(255, 100, 100));
+	m_pBoss->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
 
 	m_pScene = new CScene();
 	m_pScene->BuildObjects();
 
 	m_pScene->m_pPlayer = m_pPlayer;
+	m_pScene->m_pBoss = m_pBoss;
 }
 
 void CGameFramework::ReleaseObjects()
@@ -189,7 +199,15 @@ void CGameFramework::ProcessInput()
 		GetCursorPos(&ptCursorPos);
 		cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
 		cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
+		/*std::cout << m_Viewport.m_nHeight << std::endl;*/
 		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
+		float xValue=((2.0f*ptCursorPos.x) / m_pPlayer->m_pCamera->m_Viewport.m_nWidth) - 1;
+		float yValue = (-(2.0f*ptCursorPos.y) / m_pPlayer->m_pCamera->m_Viewport.m_nHeight) + 1;
+		float ratio = m_pPlayer->m_pCamera->m_Viewport.m_nWidth / m_pPlayer->m_pCamera->m_Viewport.m_nHeight;
+		float yScale = atan(60.0f / 2);
+		float xScale = yScale / ratio;
+		m_pScene->SetRay( { xValue / xScale, yValue / yScale,1 });
+
 	}
 	if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 	{
@@ -213,15 +231,17 @@ void CGameFramework::FrameAdvance()
 
 	ProcessInput();
 
-	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
-	m_pScene->Animate(m_GameTimer.GetTimeElapsed());
 	
-
+	m_pScene->Animate(m_GameTimer.GetTimeElapsed());
+	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
+	m_pBoss->Update(m_GameTimer.GetTimeElapsed());
 
 	ClearFrameBuffer(RGB(255, 255, 255));
 
 	m_pScene->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
 	m_pPlayer->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
+	m_pBoss->Render(m_hDCFrameBuffer, m_pPlayer->m_pCamera);
+
 
 	PresentFrameBuffer();
 

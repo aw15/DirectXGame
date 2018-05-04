@@ -13,10 +13,13 @@ public:
 	virtual ~CScene();
 
 	CPlayer						*m_pPlayer = NULL;
-
+	CBoss						*m_pBoss = NULL;
 	CGameObject					**m_ppObjects = NULL;
 	std::vector<CGameObject*> m_objects;
 	CWallsObject				*m_pWallsObject = NULL;
+	XMFLOAT3					m_ray = { 0,0,0 };
+
+	void SetRay(const XMFLOAT3& ray) { m_ray = ray;}
 
 	virtual void BuildObjects();
 	virtual void ReleaseObjects();

@@ -62,7 +62,7 @@ using namespace DirectX::PackedVector;
 
 #define EXPLOSION_DEBRISES		240
 
-#define BULLET_RANGE 200
+#define BULLET_RANGE 50
 namespace Vector3
 {
 	inline XMFLOAT3 XMVectorToFloat3(XMVECTOR& xmvVector)

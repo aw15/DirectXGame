@@ -112,20 +112,24 @@ void CPlayer::Update(float fTimeElapsed)
 	float fDeceleration = m_fFriction * fTimeElapsed;
 	if (fDeceleration > fLength) fDeceleration = fLength;
 	m_xmf3Velocity = Vector3::Add(m_xmf3Velocity, xmf3Deceleration, fDeceleration);
-
-	for (auto iter = m_bullets.begin(); iter !=m_bullets.end();)
+	for (auto iter = m_bullets.begin(); iter != m_bullets.end();)
 	{
 		auto bullet = *iter;
-		bullet->Animate(fTimeElapsed);
+	
 		if (bullet->isDead())
 		{
-			std::cout << "test" << std::endl;
-			delete bullet;
-			bullet = nullptr;
+			CBullet* pBullet = bullet;
 			iter = m_bullets.erase(iter);
+
+			delete pBullet;
+			pBullet = nullptr;
 		}
 		else
+		{
+			bullet->Animate(fTimeElapsed);
 			iter++;
+		}
+			
 	}
 	if (m_pMesh)
 	{
@@ -162,4 +166,32 @@ void CPlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 
 	for (auto& bullet:m_bullets)
 		bullet->Render(hDCFrameBuffer, pCamera);
+}
+
+void CBoss::Update(float fTimeElapsed)
+{
+	for (auto iter = m_bullets.begin(); iter != m_bullets.end();)
+	{
+		auto bullet = *iter;
+
+		if (bullet->isDead())
+		{
+			CBullet* pBullet = bullet;
+			iter = m_bullets.erase(iter);
+
+			delete pBullet;
+			pBullet = nullptr;
+		}
+		else
+		{
+			bullet->Animate(fTimeElapsed);
+			iter++;
+		}
+
+	}
+	if (m_pMesh)
+	{
+		m_pMesh->m_xmOOBB.Transform(m_xmOOBB, XMLoadFloat4x4(&m_xmf4x4World));
+		XMStoreFloat4(&m_xmOOBB.Orientation, XMQuaternionNormalize(XMLoadFloat4(&m_xmOOBB.Orientation)));
+	}
 }
