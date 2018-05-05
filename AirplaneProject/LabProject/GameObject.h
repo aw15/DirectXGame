@@ -31,6 +31,8 @@ public:
 	XMFLOAT3					m_xmf3RotationAxis;
 	float						m_fRotationSpeed;
 
+	float						m_spawnTime = 0;
+
 public:
 	void SetMesh(CMesh *pMesh) { m_pMesh = pMesh; if (pMesh) pMesh->AddRef(); }
 	void SetColor(DWORD dwColor) { m_dwColor = dwColor; }
@@ -70,7 +72,15 @@ public:
 	{
 		if (totalMovement > BULLET_RANGE)
 		{
-			return alive;
+			return true;
+		}
+		return !alive;
+	}
+	bool isDead(int range)
+	{
+		if (totalMovement > range)
+		{
+			return true;
 		}
 		return !alive;
 	}

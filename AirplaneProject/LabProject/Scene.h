@@ -26,6 +26,9 @@ public:
 
 	virtual void CheckObjectByObjectCollisions();
 	virtual void CheckObjectByWallCollisions();
+	virtual void BulletCollisions();
+	void Restart();
+
 
 	virtual void Animate(float fElapsedTime);
 	virtual void Render(HDC hDCFrameBuffer, CCamera *pCamera);

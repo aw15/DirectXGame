@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "LabProject.h"
+#include "AirplaneProject.h"
 #include "GameFramework.h"
 
 #define MAX_LOADSTRING 100
@@ -22,6 +22,8 @@ INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR lpCmdLine, int nCmdShow)
 {
+
+	srand(time(NULL));
 	AllocConsole();
 
 	freopen("CONOUT$", "wb", stdout);

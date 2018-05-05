@@ -134,9 +134,9 @@ LRESULT CALLBACK CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMess
 void CGameFramework::BuildObjects()
 {
 	CAirplaneMesh *pAirplaneMesh = new CAirplaneMesh(6.0f, 6.0f, 1.0f);
-	pAirplaneMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(3.0f, 3.0f, 3.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	pAirplaneMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(3.0f, 3.0f, 30.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	m_pPlayer = new CPlayer();
-	m_pPlayer->SetPosition(0.0f, 0.0f, -30.0f);
+	m_pPlayer->SetPosition(0.0f, 0.0f, -500.0f);
 	m_pPlayer->SetMesh(pAirplaneMesh);
 	m_pPlayer->SetColor(RGB(0, 0, 255));
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
@@ -144,7 +144,7 @@ void CGameFramework::BuildObjects()
 	CBossMesh *pBossMesh = new CBossMesh(20.0f, 10.0f, 20.0f);
 	pBossMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	m_pBoss = new CBoss();
-	m_pBoss->SetPosition(10.0f, 0.0f, 900.0f);
+	m_pBoss->SetPosition(10.0f, 0.0f,500.0f);
 	m_pBoss->Rotate(0, 180, 0 );
 	m_pBoss->SetMesh(pBossMesh);
 	m_pBoss->SetColor(RGB(255, 100, 100));
@@ -218,7 +218,7 @@ void CGameFramework::ProcessInput()
 			else
 				m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 		}
-		if (dwDirection) m_pPlayer->Move(dwDirection, 0.3f);
+		if (dwDirection) m_pPlayer->Move(dwDirection, 1.0f);
 	}
 	
 }
@@ -229,12 +229,19 @@ void CGameFramework::FrameAdvance()
 
 	m_GameTimer.Tick(0.0f);
 
+
+	if (m_pBoss->m_hp < 0 || m_pPlayer->m_hp < 0)
+	{
+		m_pScene->Restart();
+	}
+
 	ProcessInput();
 
-	
+
 	m_pScene->Animate(m_GameTimer.GetTimeElapsed());
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 	m_pBoss->Update(m_GameTimer.GetTimeElapsed());
+
 
 	ClearFrameBuffer(RGB(255, 255, 255));
 
@@ -247,6 +254,9 @@ void CGameFramework::FrameAdvance()
 
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
+
+
+
 }
 
 

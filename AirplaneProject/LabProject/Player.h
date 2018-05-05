@@ -22,6 +22,10 @@ public:
 	float           			m_fYaw = 0.0f;
 	float           			m_fRoll = 0.0f;
 
+	float						m_coolTime = 0.0f;
+	float						m_invincibilityTime = 1.0f;
+	float						m_hp =3;
+
 	CCamera						*m_pCamera = NULL;
 	std::vector<CBullet*>        m_bullets;
 	CCubeMesh					*pBulletMesh;
@@ -33,11 +37,12 @@ public:
 	void Move(DWORD dwDirection, float fDistance);
 	void Move(XMFLOAT3& xmf3Shift, bool bUpdateVelocity);
 	void Move(float x, float y, float z);
+	void Dead();
 	void Rotate(float fPitch = 0.0f, float fYaw = 0.0f, float fRoll = 0.0f);
 	void SetCameraOffset(XMFLOAT3& xmf3CameraOffset);
 	virtual void Update(float fTimeElapsed=0.016f);
 	void Fire();
-
+	void Fire(float speed);
 	virtual void Render(HDC hDCFrameBuffer, CCamera *pCamera);
 };
 
