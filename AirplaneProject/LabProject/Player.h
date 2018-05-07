@@ -42,7 +42,7 @@ public:
 	void SetCameraOffset(XMFLOAT3& xmf3CameraOffset);
 	virtual void Update(float fTimeElapsed=0.016f);
 	void Fire();
-	void Fire(float speed);
+	void Fire(float speed, XMFLOAT3&);
 	virtual void Render(HDC hDCFrameBuffer, CCamera *pCamera);
 };
 

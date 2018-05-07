@@ -73,7 +73,7 @@ void CScene::BuildObjects()
 {
 	CExplosiveObject::PrepareExplosion();
 
-	float fHalfWidth = 45.0f, fHalfHeight = 45.0f, fHalfDepth = 500.0f;
+	float fHalfWidth = 45.0f, fHalfHeight = 45.0f, fHalfDepth = 1000.0f;
 	CWallMesh *pWallCubeMesh = new CWallMesh(fHalfWidth * 2.0f, fHalfHeight * 2.0f, fHalfDepth * 2.0f, 30);
 	pWallCubeMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(fHalfWidth, fHalfHeight, fHalfDepth), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 
@@ -157,7 +157,6 @@ void CScene::CheckObjectByObjectCollisions()
 		//플레이어와 오브젝트 충돌체크
 		if (m_objects[i]->m_xmOOBB.Intersects(m_pPlayer->m_xmOOBB)&&m_pPlayer->m_invincibilityTime<0)
 		{
-			std::cout << "test";
 			m_pPlayer->SetColor(m_objects[i]->m_dwColor);
 			m_pPlayer->m_hp -= 1;
 			m_pPlayer->m_invincibilityTime = 1;
@@ -247,7 +246,7 @@ void CScene::CheckObjectByWallCollisions()
 				break;
 		}
 	}
-	//플레이어 콜리전 체크
+	//플레이어와 벽간에 콜리전 체크
 	ContainmentType containType = m_pWallsObject->m_xmOOBB.Contains(m_pPlayer->m_xmOOBB);
 	switch (containType)
 	{
@@ -266,6 +265,7 @@ void CScene::CheckObjectByWallCollisions()
 		if (nPlaneIndex != -1)
 		{
 			m_pPlayer->SetPosition(0, 0, m_pPlayer->m_xmf3Position.z);
+			m_pPlayer->SetMovingDirection(XMFLOAT3{ 0,1,0 });
 			//m_pPlayer->SetColor(RGB(0, 0, 0));
 		}
 		break;
@@ -285,6 +285,7 @@ void CScene::CheckObjectByWallCollisions()
 		if (nPlaneIndex != -1)
 		{
 			m_pPlayer->SetPosition(0, 0, m_pPlayer->m_xmf3Position.z);
+			m_pPlayer->SetMovingDirection(XMFLOAT3{ 0,1,0 });
 			//m_pPlayer->SetColor(RGB(0, 0, 0));
 		}
 		break;
@@ -413,9 +414,9 @@ void CScene::Animate(float fElapsedTime)
 		pObjects->SetMesh(pObjectCubeMesh);
 		pObjects->SetColor(RGB(255,0,0));
 		pObjects->SetPosition(m_pPlayer->m_xmf3Position.x + rand() % 20 - 10, m_pPlayer->m_xmf3Position.y + rand() % 20 - 10, m_pPlayer->m_xmf3Position.z + 100);
-		pObjects->SetRotationAxis(XMFLOAT3(0.0f, 1.0f, 1.0f));
+		pObjects->SetRotationAxis(XMFLOAT3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX));
+		pObjects->SetMovingDirection(XMFLOAT3(rand() / (float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX));
 		pObjects->SetRotationSpeed(90.0f);
-		pObjects->SetMovingDirection(XMFLOAT3( rand()/(float)RAND_MAX, rand() / (float)RAND_MAX, rand() / (float)RAND_MAX));
 		pObjects->SetMovingSpeed(30.5f);
 
 		m_objects.push_back(pObjects);

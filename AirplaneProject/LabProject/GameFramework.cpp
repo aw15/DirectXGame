@@ -141,8 +141,8 @@ void CGameFramework::BuildObjects()
 	m_pPlayer->SetColor(RGB(0, 0, 255));
 	m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
 	
-	CBossMesh *pBossMesh = new CBossMesh(20.0f, 10.0f, 20.0f);
-	pBossMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(10.0f, 10.0f, 5.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
+	CBossMesh *pBossMesh = new CBossMesh(40.0f, 20.0f, 40.0f);
+	pBossMesh->SetOOBB(XMFLOAT3(0.0f, 0.0f, 0.0f), XMFLOAT3(20.0f, 20.0f, 10.0f), XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f));
 	m_pBoss = new CBoss();
 	m_pBoss->SetPosition(10.0f, 0.0f,500.0f);
 	m_pBoss->Rotate(0, 180, 0 );
@@ -207,7 +207,6 @@ void CGameFramework::ProcessInput()
 		float yScale = atan(60.0f / 2);
 		float xScale = yScale / ratio;
 		m_pScene->SetRay( { xValue / xScale, yValue / yScale,1 });
-
 	}
 	if ((dwDirection != 0) || (cxDelta != 0.0f) || (cyDelta != 0.0f))
 	{
@@ -218,7 +217,44 @@ void CGameFramework::ProcessInput()
 			else
 				m_pPlayer->Rotate(cyDelta, cxDelta, 0.0f);
 		}
-		if (dwDirection) m_pPlayer->Move(dwDirection, 1.0f);
+		if (dwDirection)
+		{
+			if (m_pPlayer->GetPosition().y > 20)
+			{
+				m_pPlayer->m_xmf3Position.y -= 1;
+				m_pPlayer->SetColor(RGB(250, 50, 250));
+			}
+			if (m_pPlayer->GetPosition().y < -20)
+			{
+				m_pPlayer->m_xmf3Position.y += 1;
+				m_pPlayer->SetColor(RGB(250, 50, 250));
+			}
+			if (m_pPlayer->GetPosition().x > 30)
+			{
+				m_pPlayer->m_xmf3Position.x -= 1;
+				m_pPlayer->SetColor(RGB(250, 50, 250));
+			}
+			if (m_pPlayer->GetPosition().x < -30)
+			{
+				m_pPlayer->m_xmf3Position.x += 1;
+				m_pPlayer->SetColor(RGB(250, 50, 250));
+			}
+			if (m_pPlayer->GetPosition().z < -500)
+			{
+				m_pPlayer->m_xmf3Position.z += 1;
+				m_pPlayer->SetColor(RGB(250, 250, 0));
+			}
+			if (m_pPlayer->GetPosition().z > 400)
+			{
+				m_pPlayer->m_xmf3Position.z -= 1;
+				m_pPlayer->SetColor(RGB(250, 250, 0));
+			}
+			else
+			{
+				m_pPlayer->Move(dwDirection, 0.5f);
+				m_pPlayer->SetColor(RGB(0, 0, 255));
+			}
+		}
 	}
 	
 }
@@ -235,12 +271,27 @@ void CGameFramework::FrameAdvance()
 		m_pScene->Restart();
 	}
 
+	static float totalTime = 0;
+	totalTime += m_GameTimer.GetTimeElapsed();
+	if (totalTime > 1)
+	{
+		XMFLOAT3 dir;
+		dir.x = m_pPlayer->m_xmf3Position.x - m_pBoss->m_xmf3Position.x;
+		dir.y = m_pPlayer->m_xmf3Position.y - m_pBoss->m_xmf3Position.y;
+		dir.z = m_pPlayer->m_xmf3Position.z - m_pBoss->m_xmf3Position.z;
+		dir = Vector3::Normalize(dir);
+		m_pBoss->Fire(200,dir);
+		totalTime = 0;
+	}
+
 	ProcessInput();
+
 
 
 	m_pScene->Animate(m_GameTimer.GetTimeElapsed());
 	m_pPlayer->Update(m_GameTimer.GetTimeElapsed());
 	m_pBoss->Update(m_GameTimer.GetTimeElapsed());
+	
 
 
 	ClearFrameBuffer(RGB(255, 255, 255));
@@ -254,9 +305,6 @@ void CGameFramework::FrameAdvance()
 
 	m_GameTimer.GetFrameRate(m_pszFrameRate + 12, 37);
 	::SetWindowText(m_hWnd, m_pszFrameRate);
-
-
-
 }
 
 

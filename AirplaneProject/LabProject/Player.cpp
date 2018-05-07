@@ -172,7 +172,7 @@ void CPlayer::Fire()
 	m_bullets.push_back(m_ppObjects);
 }
 
-void CPlayer::Fire(float speed)
+void CPlayer::Fire(float speed,XMFLOAT3& dir)
 {
 	auto m_ppObjects = new CBullet();
 	m_ppObjects->SetMesh(pBulletMesh);
@@ -180,7 +180,7 @@ void CPlayer::Fire(float speed)
 	m_ppObjects->SetPosition(m_xmf3Position.x, m_xmf3Position.y, m_xmf3Position.z);
 	m_ppObjects->SetRotationAxis(XMFLOAT3(0.0f, 0.0f, 1.0f));
 	m_ppObjects->SetRotationSpeed(90.0f);
-	m_ppObjects->SetMovingDirection(m_xmf3Look);
+	m_ppObjects->SetMovingDirection(dir);
 	m_ppObjects->SetMovingSpeed(speed);
 
 
@@ -207,19 +207,13 @@ void CPlayer::Render(HDC hDCFrameBuffer, CCamera *pCamera)
 
 void CBoss::Update(float fTimeElapsed)
 {
-	static float totalTime = 0;
-	totalTime+=fTimeElapsed;
-	if (totalTime > 1)
-	{
-		Fire(200);
-		totalTime = 0;
-	}
+
 
 	for (auto iter = m_bullets.begin(); iter != m_bullets.end();)
 	{
 		auto bullet = *iter;
 
-		if (bullet->isDead(400))
+		if (bullet->isDead(1000))
 		{
 			CBullet* pBullet = bullet;
 			iter = m_bullets.erase(iter);
