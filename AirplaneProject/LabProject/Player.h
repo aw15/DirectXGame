@@ -30,7 +30,7 @@ public:
 	std::vector<CBullet*>        m_bullets;
 	CCubeMesh					*pBulletMesh;
 
-	int m_itemCount = 0;
+	int m_itemCount = 1;
 
 
 	void SetPosition(float x, float y, float z);

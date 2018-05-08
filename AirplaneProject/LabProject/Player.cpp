@@ -135,7 +135,7 @@ void CPlayer::Update(float fTimeElapsed)
 	{
 		auto bullet = *iter;
 	
-		if (bullet->isDead(400))
+		if (bullet->isDead(100))
 		{
 			CBullet* pBullet = bullet;
 			iter = m_bullets.erase(iter);

@@ -68,6 +68,7 @@ void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM
 		case WM_RBUTTONDOWN:
 			::SetCapture(hWnd);
 			::GetCursorPos(&m_ptOldCursorPos);
+
 			break;
 		case WM_LBUTTONUP:
 		case WM_RBUTTONUP:
@@ -184,6 +185,7 @@ void CGameFramework::ProcessInput()
 	DWORD dwDirection = 0;
 	if (GetKeyboardState(pKeyBuffer))
 	{
+		
 		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
 		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
 		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
@@ -197,14 +199,15 @@ void CGameFramework::ProcessInput()
 	{
 		SetCursor(NULL);
 		GetCursorPos(&ptCursorPos);
-		cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 3.0f;
-		cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 3.0f;
+		cxDelta = (float)(ptCursorPos.x - m_ptOldCursorPos.x) / 5.0f;
+		cyDelta = (float)(ptCursorPos.y - m_ptOldCursorPos.y) / 5.0f;
 		/*std::cout << m_Viewport.m_nHeight << std::endl;*/
 		SetCursorPos(m_ptOldCursorPos.x, m_ptOldCursorPos.y);
-		float xValue=((2.0f*ptCursorPos.x) / m_pPlayer->m_pCamera->m_Viewport.m_nWidth) - 1;
+		float xValue=((2.0f*(ptCursorPos.x-700)) / m_pPlayer->m_pCamera->m_Viewport.m_nWidth) - 1;
 		float yValue = (-(2.0f*ptCursorPos.y) / m_pPlayer->m_pCamera->m_Viewport.m_nHeight) + 1;
 		float ratio = m_pPlayer->m_pCamera->m_Viewport.m_nWidth / m_pPlayer->m_pCamera->m_Viewport.m_nHeight;
-		float yScale = atan(60.0f / 2);
+		float yScale = tan(60.0f / 2);
+		yScale = 1 / yScale;
 		float xScale = yScale / ratio;
 		m_pScene->SetRay( { xValue / xScale, yValue / yScale,1 });
 	}
@@ -224,34 +227,32 @@ void CGameFramework::ProcessInput()
 				m_pPlayer->m_xmf3Position.y -= 1;
 				m_pPlayer->SetColor(RGB(250, 50, 250));
 			}
-			if (m_pPlayer->GetPosition().y < -20)
+			else if (m_pPlayer->GetPosition().y < -20)
 			{
 				m_pPlayer->m_xmf3Position.y += 1;
 				m_pPlayer->SetColor(RGB(250, 50, 250));
 			}
-			if (m_pPlayer->GetPosition().x > 30)
+			else if (m_pPlayer->GetPosition().x > 30)
 			{
 				m_pPlayer->m_xmf3Position.x -= 1;
 				m_pPlayer->SetColor(RGB(250, 50, 250));
 			}
-			if (m_pPlayer->GetPosition().x < -30)
+			else if (m_pPlayer->GetPosition().x < -30)
 			{
 				m_pPlayer->m_xmf3Position.x += 1;
 				m_pPlayer->SetColor(RGB(250, 50, 250));
 			}
-			if (m_pPlayer->GetPosition().z < -500)
+			else if (m_pPlayer->GetPosition().z < -500)
 			{
 				m_pPlayer->m_xmf3Position.z += 1;
 				m_pPlayer->SetColor(RGB(250, 250, 0));
 			}
-			if (m_pPlayer->GetPosition().z > 400)
+			else if (m_pPlayer->GetPosition().z > 400)
 			{
-				m_pPlayer->m_xmf3Position.z -= 1;
-				m_pPlayer->SetColor(RGB(250, 250, 0));
 			}
 			else
 			{
-				m_pPlayer->Move(dwDirection, 0.5f);
+				m_pPlayer->Move(dwDirection, 1.3f);
 				m_pPlayer->SetColor(RGB(0, 0, 255));
 			}
 		}
@@ -280,7 +281,7 @@ void CGameFramework::FrameAdvance()
 		dir.y = m_pPlayer->m_xmf3Position.y - m_pBoss->m_xmf3Position.y;
 		dir.z = m_pPlayer->m_xmf3Position.z - m_pBoss->m_xmf3Position.z;
 		dir = Vector3::Normalize(dir);
-		m_pBoss->Fire(200,dir);
+		m_pBoss->Fire(50,dir);
 		totalTime = 0;
 	}
 

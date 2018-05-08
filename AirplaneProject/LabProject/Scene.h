@@ -17,9 +17,10 @@ public:
 	CGameObject					**m_ppObjects = NULL;
 	std::vector<CGameObject*> m_objects;
 	CWallsObject				*m_pWallsObject = NULL;
-	XMFLOAT3					m_ray = { 0,0,0 };
+	XMFLOAT3					m_ray = { 0,1,0 };
+	float						m_itemCoolTime = 0;
 
-	void SetRay(const XMFLOAT3& ray) { m_ray = ray;}
+	void SetRay(XMFLOAT3 ray) { m_ray = Vector3::Normalize(ray); }
 
 	virtual void BuildObjects();
 	virtual void ReleaseObjects();

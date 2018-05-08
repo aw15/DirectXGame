@@ -56,7 +56,7 @@ void CScene::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wPar
 							CExplosiveObject *pExplosiveObject = (CExplosiveObject *)cube;
 							pExplosiveObject->m_bBlowingUp = true;
 						}
-						m_pPlayer->m_itemCount-=2;
+						m_pPlayer->m_itemCount-=1;
 						
 					}
 					break;
@@ -114,32 +114,30 @@ void CScene::CheckObjectByObjectCollisions()
 {
 	for (auto& cube:m_objects) cube->m_pObjectCollided = NULL;
 	CGameObject* pickObject=nullptr;
-	float maxdist = 0;
+	//float maxdist = 0;
+	//XMFLOAT3 ray;
+	//XMVECTOR origin, direction;
+	//float dist = 0;
+
+	//origin = DirectX::XMLoadFloat3(&m_pPlayer->m_pCamera->m_xmf3Position);
+	//FXMMATRIX temp = XMLoadFloat4x4(&m_pPlayer->m_pCamera->m_xmf4x4View);
+	//auto det = XMMatrixDeterminant(temp);
+	//auto invView = XMMatrixInverse(&det,temp);
+	//XMFLOAT4X4 inv;
+	//XMStoreFloat4x4(&inv, invView);
+
+	//ray =  inv*m_ray;
+	//direction = DirectX::XMLoadFloat3(&ray);
+	//direction = XMVector3Normalize(direction);
 
 	for (int i = 0; i < m_objects.size(); i++)
 	{
-		XMVECTOR origin,direction;
-		float dist=0;
-		//m_ray.x *= m_objects[i]->m_xmf4x4World._41;
-		//m_ray.y *= m_objects[i]->m_xmf4x4World._42;
-		//m_ray.z *= m_objects[i]->m_xmf4x4World._43;
-
-		//origin = DirectX::XMLoadFloat3(&m_pPlayer->m_pCamera->m_xmf3Position);
-		//direction = DirectX::XMLoadFloat3(&m_ray);
 
 		//if (m_objects[i]->m_xmOOBB.Intersects(origin, direction, dist))
 		//{
-		//	if (maxdist < abs(dist))
-		//	{
+		//		std::cout << dist << std::endl;
 		//		pickObject = m_objects[i];
-		//	}
 		//}
-		//
-
-		////if (dist == 0)
-		////{
-		////	m_objects[i]->SetColor(RGB(255, 255, 0));
-		////}
 
 		for (auto& bullet:m_pPlayer->m_bullets)//총알과의 충돌체크.
 		{
@@ -148,9 +146,10 @@ void CScene::CheckObjectByObjectCollisions()
 				CExplosiveObject *pExplosiveObject = (CExplosiveObject *)m_objects[i];
 				pExplosiveObject->m_bBlowingUp = true;
 				bullet->alive = false;
-				if (m_objects[i]->m_dwColor == RGB(255, 0, 0))
+				if (m_objects[i]->m_dwColor == RGB(255, 0, 0)&&m_itemCoolTime<0)
 				{
 					m_pPlayer->m_itemCount += 1;
+					m_itemCoolTime = 1;
 				}
 			}
 		}
@@ -329,6 +328,7 @@ void CScene::Restart()
 		m_pPlayer->SetColor(RGB(0, 0, 255));
 		m_pPlayer->SetCameraOffset(XMFLOAT3(0.0f, 5.0f, -15.0f));
 		m_pPlayer->m_hp = 3;
+		m_pPlayer->m_itemCount = 1;
 		m_pBoss->SetPosition(10.0f, 0.0f, 500.0f);
 		m_pBoss->Rotate(0, 180, 0);
 		m_pBoss->SetColor(RGB(255, 100, 100));
@@ -341,6 +341,7 @@ void CScene::Restart()
 
 void CScene::Animate(float fElapsedTime)
 {
+	m_itemCoolTime -= fElapsedTime;
 	m_pWallsObject->Animate(fElapsedTime);
 	/*if (m_pWallsObject->m_xmOOBB.Contains(XMLoadFloat3(&m_pPlayer->m_xmf3Position)) == DISJOINT) m_pWallsObject->SetPosition(m_pPlayer->m_xmf3Position);*/
 	int backCount = 0;
