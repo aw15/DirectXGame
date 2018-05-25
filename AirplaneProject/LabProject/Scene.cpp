@@ -263,9 +263,21 @@ void CScene::CheckObjectByWallCollisions()
 		}
 		if (nPlaneIndex != -1)
 		{
-			m_pPlayer->SetPosition(0, 0, m_pPlayer->m_xmf3Position.z);
-			m_pPlayer->SetMovingDirection(XMFLOAT3{ 0,1,0 });
-			//m_pPlayer->SetColor(RGB(0, 0, 0));
+			switch (nPlaneIndex)
+			{
+			case 0:
+				m_pPlayer->Move(DIR_RIGHT, 1.3f);
+				break;
+			case 1:
+				m_pPlayer->Move(DIR_LEFT, 1.3f);
+				break;
+			case 2:
+				m_pPlayer->Move(DIR_UP, 1.3f);
+				break;
+			case 3:
+				m_pPlayer->Move(DIR_DOWN, 1.3f);
+				break;
+			}
 		}
 		break;
 	}
@@ -283,9 +295,21 @@ void CScene::CheckObjectByWallCollisions()
 		}
 		if (nPlaneIndex != -1)
 		{
-			m_pPlayer->SetPosition(0, 0, m_pPlayer->m_xmf3Position.z);
-			m_pPlayer->SetMovingDirection(XMFLOAT3{ 0,1,0 });
-			//m_pPlayer->SetColor(RGB(0, 0, 0));
+			switch (nPlaneIndex)
+			{
+			case 0:
+				m_pPlayer->Move(DIR_RIGHT, 1.3f);
+				break;
+			case 1:
+				m_pPlayer->Move(DIR_LEFT, 1.3f);
+				break;
+			case 2:
+				m_pPlayer->Move(DIR_UP, 1.3f);
+				break;
+			case 3:
+				m_pPlayer->Move(DIR_DOWN, 1.3f);
+				break;
+			}
 		}
 		break;
 	}
@@ -299,17 +323,19 @@ void CScene::BulletCollisions()
 {
 	for (auto& bullet : m_pPlayer->m_bullets)//총알과의 충돌체크.
 	{
-		if (m_pBoss->m_xmOOBB.Intersects(bullet->m_xmOOBB))
+		if (m_pBoss->m_xmOOBB.Intersects(bullet->m_xmOOBB) && m_pBoss->m_invincibilityTime<0)
 		{
 			m_pBoss->m_hp -= 1;
+			m_pPlayer->m_invincibilityTime = 1;
 		}
 	}
 
 	for (auto& bullet : m_pBoss->m_bullets)//총알과의 충돌체크.
 	{
-		if (m_pPlayer->m_xmOOBB.Intersects(bullet->m_xmOOBB))
+		if (m_pPlayer->m_xmOOBB.Intersects(bullet->m_xmOOBB) && m_pPlayer->m_invincibilityTime<0)
 		{
 			m_pPlayer->m_hp -= 1;
+			m_pPlayer->m_invincibilityTime = 1;
 		}
 	}
 }
