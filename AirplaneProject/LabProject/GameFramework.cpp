@@ -7,7 +7,7 @@
 
 CGameFramework::CGameFramework()
 {
-	_tcscpy_s(m_pszFrameRate, _T("LabProject ("));
+	_tcscpy_s(m_pszFrameRate, _T("AirplaneProject ("));
 }
 
 CGameFramework::~CGameFramework()
@@ -186,12 +186,12 @@ void CGameFramework::ProcessInput()
 	if (GetKeyboardState(pKeyBuffer))
 	{
 		
-		if (pKeyBuffer[VK_UP] & 0xF0) dwDirection |= DIR_FORWARD;
-		if (pKeyBuffer[VK_DOWN] & 0xF0) dwDirection |= DIR_BACKWARD;
-		if (pKeyBuffer[VK_LEFT] & 0xF0) dwDirection |= DIR_LEFT;
-		if (pKeyBuffer[VK_RIGHT] & 0xF0) dwDirection |= DIR_RIGHT;
-		if (pKeyBuffer[VK_PRIOR] & 0xF0) dwDirection |= DIR_UP;
-		if (pKeyBuffer[VK_NEXT] & 0xF0) dwDirection |= DIR_DOWN;
+		if (pKeyBuffer['W'] & 0xF0) dwDirection |= DIR_FORWARD;
+		if (pKeyBuffer['S'] & 0xF0) dwDirection |= DIR_BACKWARD;
+		if (pKeyBuffer['A'] & 0xF0) dwDirection |= DIR_LEFT;
+		if (pKeyBuffer['D'] & 0xF0) dwDirection |= DIR_RIGHT;
+		if (pKeyBuffer['Q'] & 0xF0) dwDirection |= DIR_UP;
+		if (pKeyBuffer['E'] & 0xF0) dwDirection |= DIR_DOWN;
 	}
 	float cxDelta = 0.0f, cyDelta = 0.0f;
 	POINT ptCursorPos;
@@ -222,38 +222,42 @@ void CGameFramework::ProcessInput()
 		}
 		if (dwDirection)
 		{
-			if (m_pPlayer->GetPosition().y > 20)
+			if (m_pPlayer->GetPosition().y > 40)
 			{
 				m_pPlayer->m_xmf3Position.y -= 1;
-				m_pPlayer->SetColor(RGB(250, 50, 250));
+				
+
 			}
-			else if (m_pPlayer->GetPosition().y < -20)
+			else if (m_pPlayer->GetPosition().y < -40)
 			{
 				m_pPlayer->m_xmf3Position.y += 1;
-				m_pPlayer->SetColor(RGB(250, 50, 250));
+				
+				
 			}
-			else if (m_pPlayer->GetPosition().x > 30)
+			if (m_pPlayer->GetPosition().x > 30)
 			{
 				m_pPlayer->m_xmf3Position.x -= 1;
-				m_pPlayer->SetColor(RGB(250, 50, 250));
+				
 			}
 			else if (m_pPlayer->GetPosition().x < -30)
 			{
 				m_pPlayer->m_xmf3Position.x += 1;
-				m_pPlayer->SetColor(RGB(250, 50, 250));
+				
 			}
 			else if (m_pPlayer->GetPosition().z < -500)
 			{
 				m_pPlayer->m_xmf3Position.z += 1;
-				m_pPlayer->SetColor(RGB(250, 250, 0));
+				
 			}
 			else if (m_pPlayer->GetPosition().z > 400)
 			{
+				m_pPlayer->m_xmf3Position.z -= 1;
+				
 			}
 			else
 			{
-				m_pPlayer->Move(dwDirection, 1.3f);
-				m_pPlayer->SetColor(RGB(0, 0, 255));
+				m_pPlayer->Move(dwDirection, 0.7f);
+				
 			}
 		}
 	}
@@ -269,7 +273,10 @@ void CGameFramework::FrameAdvance()
 
 	if (m_pBoss->m_hp < 0 || m_pPlayer->m_hp < 0)
 	{
+		//m_pPlayer->;
+		
 		m_pScene->Restart();
+		CGameFramework::BuildObjects();
 	}
 
 	static float totalTime = 0;
@@ -281,7 +288,7 @@ void CGameFramework::FrameAdvance()
 		dir.y = m_pPlayer->m_xmf3Position.y - m_pBoss->m_xmf3Position.y;
 		dir.z = m_pPlayer->m_xmf3Position.z - m_pBoss->m_xmf3Position.z;
 		dir = Vector3::Normalize(dir);
-		m_pBoss->Fire(50,dir);
+		m_pBoss->Fire(20,dir);
 		totalTime = 0;
 	}
 
