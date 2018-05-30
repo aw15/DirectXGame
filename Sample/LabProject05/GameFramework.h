@@ -5,7 +5,7 @@
 
 #include "Timer.h"
 #include "Scene.h"
-
+#include"Camera.h"
 class CGameFramework
 {
 public:
@@ -78,12 +78,12 @@ private:
 	ID3D12Debug					*m_pd3dDebugController = NULL;
 #endif
 
-	D3D12_VIEWPORT				m_d3dViewport;
-	D3D12_RECT					m_d3dScissorRect;
 
 	CScene						*m_pScene;//그려야하는 신은 여기에 있다.
 
 	CGameTimer					m_GameTimer;
 	_TCHAR						m_pszFrameRate[50];
+public:
+	CCamera * m_pCamera = NULL;
 };
 
