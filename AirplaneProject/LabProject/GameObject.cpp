@@ -41,7 +41,6 @@ CGameObject::CGameObject(CMesh *pMesh) : CGameObject()
 {
 	m_pMesh = pMesh; 
 	if (pMesh) pMesh->AddRef();
-	
 }
 
 CGameObject::~CGameObject(void)
