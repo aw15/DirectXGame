@@ -1,3 +1,4 @@
+#include"stdafx.h"
 #include "MainGame.h"
 
 const int gNumFrameResources = 3;
@@ -6,7 +7,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 	PSTR cmdLine, int showCmd)
 {
 	AllocConsole();
-	freopen("CONOUTS", "wb", stdout);
+	freopen("CONOUT$", "wb", stdout);
+
 	// Enable run-time memory check for debug builds.
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);

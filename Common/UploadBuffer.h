@@ -1,7 +1,6 @@
 #pragma once
 
 #include "d3dUtil.h"
-
 template<typename T>
 class UploadBuffer
 {
@@ -51,7 +50,7 @@ public:
     //}
 	ID3D12Resource* Resource()const
 	{
-		return mUploadBuffer;
+		return mUploadBuffer.Get();
 	}
 
     void CopyData(int elementIndex, const T& data)
@@ -60,9 +59,8 @@ public:
     }
 
 private:
-    ID3D12Resource* mUploadBuffer;
+	Microsoft::WRL::ComPtr<ID3D12Resource> mUploadBuffer;
     BYTE* mMappedData = nullptr;
-
     UINT mElementByteSize = 0;
     bool mIsConstantBuffer = false;
 };

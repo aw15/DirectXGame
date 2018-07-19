@@ -3,18 +3,6 @@
 #include<iostream>
 extern const int gNumFrameResources;
 
-struct Player : public RenderItem
-{
-	void Walk(float amount)
-	{
-		World._43 += amount;
-	}
-	void Strafe(float amount)
-	{
-		World._41 += amount;
-	}
-	float m_speed = 10;
-};
 
 
 class MainGame : public Renderer
@@ -24,15 +12,17 @@ public:
 	~MainGame();
 	virtual bool Initialize() override;
 	void BuildMap();
-	virtual void OnKeyboardInput(const GameTimer& gt) override;
-	virtual void Update(const GameTimer& gt)override;
-	virtual void Draw(const GameTimer& gt)override;
+	void OnKeyboardInput(const GameTimer& gt) override;
+	void Update(const GameTimer& gt) override;
+	void Draw(const GameTimer& gt) override;
+	void CreateBomb(int playerID=PLAYER1);
+	void DestroyBomb();
 	void RebuildFrameResouce();
 private:
 	Player* m_player1;
 	Player* m_player2;
-	int objIndex = 0;
-	bool isCreate = false;
+	int		m_objectConstantCount = 0;
+
 
 
 };

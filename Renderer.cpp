@@ -1,6 +1,7 @@
 //***************************************************************************************
 // Renderer.cpp by Frank Luna (C) 2015 All Rights Reserved.
 //***************************************************************************************
+#include"stdafx.h"
 #include"Renderer.h"
 
 Renderer::Renderer(HINSTANCE hInstance)
@@ -37,7 +38,8 @@ bool Renderer::Initialize()
 	//BuildRenderItems();
 	BuildPSOs();
 
- 
+
+
 
     return true;
 }
@@ -117,7 +119,8 @@ void Renderer::Draw(const GameTimer& gt)
 	mCommandList->SetGraphicsRootDescriptorTable(3, mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
     DrawRenderItems(mCommandList.Get(), mOpaqueRitems);
-
+	DrawRenderItems(mCommandList.Get(), mBombRitems);
+	DrawRenderItems(mCommandList.Get(), mPlayerRitems);
     // Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -199,7 +202,6 @@ void Renderer::UpdateObjectCBs(const GameTimer& gt)
 			objConstants.MaterialIndex = e->Mat->MatCBIndex;
 
 			currObjectCB->CopyData(e->ObjCBIndex, objConstants);
-
 			// Next FrameResource need to be updated too.
 			e->NumFramesDirty--;
 		}
@@ -419,9 +421,12 @@ void Renderer::BuildShapeGeometry()
 {
     GeometryGenerator geoGen;
 	GeometryGenerator::MeshData box = geoGen.CreateBox(1.0f, 1.0f, 1.0f, 3);
+	
 	GeometryGenerator::MeshData grid = geoGen.CreateGrid(20.0f, 30.0f, 60, 40);
 	GeometryGenerator::MeshData sphere = geoGen.CreateSphere(0.5f, 20, 20);
+
 	GeometryGenerator::MeshData cylinder = geoGen.CreateCylinder(0.5f, 0.3f, 3.0f, 20, 20);
+	
 
 	//
 	// We are concatenating all the geometry into one big vertex/index buffer.  So
@@ -444,6 +449,7 @@ void Renderer::BuildShapeGeometry()
 	boxSubmesh.IndexCount = (UINT)box.Indices32.size();
 	boxSubmesh.StartIndexLocation = boxIndexOffset;
 	boxSubmesh.BaseVertexLocation = boxVertexOffset;
+	BoundingBox::CreateFromPoints(boxSubmesh.Bounds, box.Vertices.size(), &box.Vertices[0].Position, sizeof(GeometryGenerator::Vertex));
 
 	SubmeshGeometry gridSubmesh;
 	gridSubmesh.IndexCount = (UINT)grid.Indices32.size();
@@ -454,12 +460,13 @@ void Renderer::BuildShapeGeometry()
 	sphereSubmesh.IndexCount = (UINT)sphere.Indices32.size();
 	sphereSubmesh.StartIndexLocation = sphereIndexOffset;
 	sphereSubmesh.BaseVertexLocation = sphereVertexOffset;
+	BoundingBox::CreateFromPoints(sphereSubmesh.Bounds, sphere.Vertices.size(), &sphere.Vertices[0].Position, sizeof(GeometryGenerator::Vertex));
 
 	SubmeshGeometry cylinderSubmesh;
 	cylinderSubmesh.IndexCount = (UINT)cylinder.Indices32.size();
 	cylinderSubmesh.StartIndexLocation = cylinderIndexOffset;
 	cylinderSubmesh.BaseVertexLocation = cylinderVertexOffset;
-
+	BoundingBox::CreateFromPoints(cylinderSubmesh.Bounds, cylinder.Vertices.size(), &cylinder.Vertices[0].Position, sizeof(GeometryGenerator::Vertex));
 	//
 	// Extract the vertex elements we are interested in and pack the
 	// vertices of all the meshes into one vertex buffer.

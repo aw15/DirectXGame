@@ -13,9 +13,6 @@
 //***************************************************************************************
 
 #pragma once
-#include <cstdint>
-#include <DirectXMath.h>
-#include <vector>
 
 class GeometryGenerator
 {
@@ -56,7 +53,6 @@ public:
 	{
 		std::vector<Vertex> Vertices;
         std::vector<uint32> Indices32;
-
         std::vector<uint16>& GetIndices16()
         {
 			if(mIndices16.empty())
