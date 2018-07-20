@@ -34,10 +34,12 @@ protected:
 	void UpdateMainPassCB(const GameTimer& gt);
 
 	void LoadTextures();
+	void LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel = { 0.05f, 0.05f, 0.05f }, XMFLOAT4 albedo = { 1.0f, 1.0f, 1.0f, 1.0f }, float rough = 0.0f);
 	void BuildRootSignature();
 	void BuildDescriptorHeaps();
 	void BuildShadersAndInputLayout();
 	void BuildShapeGeometry();
+	void LoadOBJModel(const char* path, std::string name);
 	void BuildPSOs();
 	void BuildFrameResources();
 	void BuildMaterials();
@@ -80,5 +82,8 @@ protected:
 
 	POINT mLastMousePos;
 
-
+	//int mTotalVertexCount = 0;
+	//int mTotalIndexCount = 0;
+	//std::vector<Vertex> mVertices;
+	//std::vector<std::uint16_t> mIndices;
 };

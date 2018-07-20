@@ -125,15 +125,14 @@ VertexOut VS(VertexIn vin)
 float4 PS(VertexOut pin) : SV_Target
 {
 	// Fetch the material data.
-	MaterialData matData = gMaterialData[gMaterialIndex];
-	float4 diffuseAlbedo = matData.DiffuseAlbedo;
-	float3 fresnelR0 = matData.FresnelR0;
-	float  roughness = matData.Roughness;
-	uint diffuseTexIndex = matData.DiffuseMapIndex;
+    MaterialData matData = gMaterialData[gMaterialIndex];
+    float4 diffuseAlbedo = matData.DiffuseAlbedo;
+    float3 fresnelR0 = matData.FresnelR0;
+    float roughness = matData.Roughness;
+    uint diffuseTexIndex = matData.DiffuseMapIndex;
 
 	// Dynamically look up the texture in the array.
-	diffuseAlbedo *= gDiffuseMap[diffuseTexIndex].Sample(gsamLinearWrap, pin.TexC);
-	
+    diffuseAlbedo *= gDiffuseMap[diffuseTexIndex].Sample(gsamLinearWrap, pin.TexC);
     // Interpolating normal can unnormalize it, so renormalize it.
     pin.NormalW = normalize(pin.NormalW);
 
@@ -141,7 +140,7 @@ float4 PS(VertexOut pin) : SV_Target
     float3 toEyeW = normalize(gEyePosW - pin.PosW);
 
     // Light terms.
-    float4 ambient = gAmbientLight*diffuseAlbedo;
+    float4 ambient = gAmbientLight * diffuseAlbedo;
 
     const float shininess = 1.0f - roughness;
     Material mat = { diffuseAlbedo, fresnelR0, shininess };
@@ -153,7 +152,6 @@ float4 PS(VertexOut pin) : SV_Target
 
     // Common convention to take alpha from diffuse albedo.
     litColor.a = diffuseAlbedo.a;
-
     return litColor;
 }
 

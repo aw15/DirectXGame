@@ -24,6 +24,8 @@ MainGame::~MainGame()
 	auto lookVector = mCamera.GetLook3f();
 	mCamera.SetPosition(10, 30, 10);
 	mCamera.Pitch(0.5*XM_PI);
+	///////////////////////////////////////////////////
+	//LoadTexture(L"Textures/WoodCrate01.dds", "crate");
 	BuildMap();
 	BuildFrameResources();
 	/////////////////////////////////////////////////
@@ -54,28 +56,28 @@ MainGame::~MainGame()
 
 void MainGame::BuildMap()
 {
-	for (int i = 0; i < 10; ++i)
-	{
-		for (int j = 0; j < 10; j++)
-		{
-			if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
-			{
-				auto boxRitem = std::make_unique<RenderItem>();
-				XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(i*2.0f, 0.0f, j*2.0f));
-				XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-				boxRitem->ObjCBIndex = m_objectConstantCount++;
-				boxRitem->Mat = mMaterials["crate0"].get();
-				boxRitem->Geo = mGeometries["shapeGeo"].get();
-				boxRitem->Tag = BOX;
-				boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-				boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
-				boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
-				boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
-				boxRitem->m_standardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
-				mAllRitems.push_back(std::move(boxRitem));
-			}
-		}
-	}
+	//for (int i = 0; i < 10; ++i)
+	//{
+	//	for (int j = 0; j < 10; j++)
+	//	{
+	//		if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
+	//		{
+	//			auto boxRitem = std::make_unique<RenderItem>();
+	//			XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(i*2.0f, 0.0f, j*2.0f));
+	//			XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+	//			boxRitem->ObjCBIndex = m_objectConstantCount++;
+	//			boxRitem->Mat = mMaterials["crate0"].get();
+	//			boxRitem->Geo = mGeometries["shapeGeo"].get();
+	//			boxRitem->Tag = BOX;
+	//			boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	//			boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
+	//			boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+	//			boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+	//			boxRitem->m_standardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
+	//			mAllRitems.push_back(std::move(boxRitem));
+	//		}
+	//	}
+	//}
 	// All the render items are opaque.
 	for (auto& e : mAllRitems)
 		mOpaqueRitems.push_back(e.get());
@@ -84,7 +86,7 @@ void MainGame::BuildMap()
 	XMStoreFloat4x4(&player2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(15.5f, 0.0f, 5.0f));
 	XMStoreFloat4x4(&player2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	player2->ObjCBIndex = m_objectConstantCount++;
-	player2->Mat = mMaterials["bricks0"].get();
+	player2->Mat = mMaterials["crate0"].get();
 	player2->Geo = mGeometries["shapeGeo"].get();
 	player2->Tag = PLAYER;
 	player2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
@@ -100,7 +102,7 @@ void MainGame::BuildMap()
 	XMStoreFloat4x4(&player1->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(5.0f, 0.0f, 15.5f));
 	XMStoreFloat4x4(&player1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 	player1->ObjCBIndex = m_objectConstantCount++;
-	player1->Mat = mMaterials["bricks0"].get();
+	player1->Mat = mMaterials["crate0"].get();
 	player1->Geo = mGeometries["shapeGeo"].get();
 	player1->Tag = PLAYER;
 	player1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
