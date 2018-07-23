@@ -29,14 +29,7 @@ bool Renderer::Initialize()
 
 	//mCamera.SetPosition(0.0f, 2.0f, -15.0f);
  
-	LoadTextures();
-    BuildRootSignature();
-	BuildDescriptorHeaps();
-    BuildShadersAndInputLayout();
-    BuildShapeGeometry();
-	BuildMaterials();
-	//BuildRenderItems();
-	BuildPSOs();
+	//LoadTextures();
 
 
 
@@ -118,9 +111,12 @@ void Renderer::Draw(const GameTimer& gt)
     // The root signature knows how many descriptors are expected in the table.
 	mCommandList->SetGraphicsRootDescriptorTable(3, mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
+
     DrawRenderItems(mCommandList.Get(), mOpaqueRitems);
-	DrawRenderItems(mCommandList.Get(), mBombRitems);
 	DrawRenderItems(mCommandList.Get(), mPlayerRitems);
+
+	mCommandList->SetPipelineState(mPSOs["fire"].Get());
+	DrawRenderItems(mCommandList.Get(), mBombRitems);
     // Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -266,109 +262,42 @@ void Renderer::UpdateMainPassCB(const GameTimer& gt)
 	mMainPassCB.Lights[2].Direction = { 0.0f, -0.707f, -0.707f };
 	mMainPassCB.Lights[2].Strength = { 0.2f, 0.2f, 0.2f };
 
+
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
 }
 
-void Renderer::LoadTextures()
-{
-	auto bricksTex = std::make_unique<Texture>();
-	bricksTex->Name = "bricksTex";
-	bricksTex->Filename = L"Textures/bricks.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), bricksTex->Filename.c_str(),
-		bricksTex->Resource, bricksTex->UploadHeap));
 
-	auto stoneTex = std::make_unique<Texture>();
-	stoneTex->Name = "stoneTex";
-	stoneTex->Filename = L"Textures/stone.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), stoneTex->Filename.c_str(),
-		stoneTex->Resource, stoneTex->UploadHeap));
-
-	auto tileTex = std::make_unique<Texture>();
-	tileTex->Name = "tileTex";
-	tileTex->Filename = L"Textures/tile.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), tileTex->Filename.c_str(),
-		tileTex->Resource, tileTex->UploadHeap));
-
-	auto crateTex = std::make_unique<Texture>();
-	crateTex->Name = "crateTex";
-	crateTex->Filename = L"Textures/WoodCrate01.dds";
-	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
-		mCommandList.Get(), crateTex->Filename.c_str(),
-		crateTex->Resource, crateTex->UploadHeap));
-
-	mTextures[bricksTex->Name] = std::move(bricksTex);
-	mTextures[stoneTex->Name] = std::move(stoneTex);
-	mTextures[tileTex->Name] = std::move(tileTex);
-	mTextures[crateTex->Name] = std::move(crateTex);
-}
-
-void Renderer::LoadTexture(std::wstring& path, std::string& name, XMFLOAT3 fersnel, XMFLOAT4 albedo, float rough)
+void Renderer::LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel, XMFLOAT4 albedo, float rough)
 {
 	auto texture = std::make_unique<Texture>();
 	texture->Name = name;
 	texture->Filename = path;
 	ThrowIfFailed(DirectX::CreateDDSTextureFromFile12(md3dDevice.Get(),
 		mCommandList.Get(), texture->Filename.c_str(),
-		texture->Resource, texture->UploadHeap));\
+		texture->Resource, texture->UploadHeap)); 
 
 	mTextures[texture->Name] = std::move(texture);
 
-	auto mat = std::make_unique<Material>();
-	mat->Name = name;
-	mat->MatCBIndex = mMaterials.size();
-	mat->DiffuseSrvHeapIndex = mMaterials.size();
-	mat->DiffuseAlbedo = albedo;
-	mat->FresnelR0 = fersnel;
-	mat->Roughness = rough;
-	mMaterials[name] = std::move(mat);
+	auto bricks0 = std::make_unique<Material>();
+	bricks0->Name = name;
+	bricks0->MatCBIndex = mMaterials.size();
+	bricks0->DiffuseSrvHeapIndex = mMaterials.size();
+	bricks0->DiffuseAlbedo = albedo;
+	bricks0->FresnelR0 = fersnel;
+	bricks0->Roughness = rough;
 
-	//
-	// Create the SRV heap.
-	//
-	if (mSrvDescriptorHeap)
-	{
-		mSrvDescriptorHeap->Release();
-	}
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = mTextures.size();
-	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
-
-	//
-	// Fill out the heap with actual descriptors.
-	//
-	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	hDescriptor.Offset(mTextures, mCbvSrvDescriptorSize);
-	auto Tex = mTextures[name]->Resource;
-
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = Tex->GetDesc().Format;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = Tex->GetDesc().MipLevels;
-	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	md3dDevice->CreateShaderResourceView(Tex.Get(), &srvDesc, hDescriptor);
-
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
-	srvDesc.Format = stoneTex->GetDesc().Format;
-	srvDesc.Texture2D.MipLevels = stoneTex->GetDesc().MipLevels;
-	md3dDevice->CreateShaderResourceView(stoneTex.Get(), &srvDesc, hDescriptor);
+	mMaterials[name] = std::move(bricks0);
 }
+
 
 
 void Renderer::BuildRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, mTextures.size(), 0, 0);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,MAX_TEXTURE, 0, 0);
 
+	
     // Root parameter can be a table, root descriptor or root constants.
     CD3DX12_ROOT_PARAMETER slotRootParameter[4];
 
@@ -411,50 +340,33 @@ void Renderer::BuildDescriptorHeaps()
 	// Create the SRV heap.
 	//
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 4;
+	srvHeapDesc.NumDescriptors = MAX_TEXTURE;
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&mSrvDescriptorHeap)));
 
-	//
 	// Fill out the heap with actual descriptors.
-	//
+	
 	CD3DX12_CPU_DESCRIPTOR_HANDLE hDescriptor(mSrvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 	
-	auto bricksTex = mTextures["bricksTex"]->Resource;
-	auto stoneTex = mTextures["stoneTex"]->Resource;
-	auto tileTex = mTextures["tileTex"]->Resource;
-	auto crateTex = mTextures["crateTex"]->Resource;
+
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.Format = bricksTex->GetDesc().Format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MostDetailedMip = 0;
-	srvDesc.Texture2D.MipLevels = bricksTex->GetDesc().MipLevels;
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
-	md3dDevice->CreateShaderResourceView(bricksTex.Get(), &srvDesc, hDescriptor);
-	
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
 
-	srvDesc.Format = stoneTex->GetDesc().Format;
-	srvDesc.Texture2D.MipLevels = stoneTex->GetDesc().MipLevels;
-	md3dDevice->CreateShaderResourceView(stoneTex.Get(), &srvDesc, hDescriptor);
+	srvDesc.Texture2D.MostDetailedMip = 0;
 
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	for (auto& texture:mTextures)
+	{
+		auto resource = texture.second->Resource;
+		srvDesc.Format = resource->GetDesc().Format;
+		srvDesc.Texture2D.MipLevels = resource->GetDesc().MipLevels;
+		md3dDevice->CreateShaderResourceView(resource.Get(), &srvDesc, hDescriptor);
 
-	srvDesc.Format = tileTex->GetDesc().Format;
-	srvDesc.Texture2D.MipLevels = tileTex->GetDesc().MipLevels;
-	md3dDevice->CreateShaderResourceView(tileTex.Get(), &srvDesc, hDescriptor);
-
-	// next descriptor
-	hDescriptor.Offset(1, mCbvSrvDescriptorSize);
-
-	srvDesc.Format = crateTex->GetDesc().Format;
-	srvDesc.Texture2D.MipLevels = crateTex->GetDesc().MipLevels;
-	md3dDevice->CreateShaderResourceView(crateTex.Get(), &srvDesc, hDescriptor);
+		hDescriptor.Offset(1, mCbvSrvDescriptorSize);
+	}
 }
 void Renderer::BuildShadersAndInputLayout()
 {
@@ -467,6 +379,9 @@ void Renderer::BuildShadersAndInputLayout()
 	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders/Default.hlsl", nullptr, "VS", "vs_5_1");
 	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders/Default.hlsl", nullptr, "PS", "ps_5_1");
 	
+	mShaders["fireVS"] = d3dUtil::CompileShader(L"Shaders/Fire.hlsl", nullptr, "FireVertexShader", "vs_5_1");
+	mShaders["firePS"] = d3dUtil::CompileShader(L"Shaders/Fire.hlsl", nullptr, "FirePixelShader", "ps_5_1");
+
     mInputLayout =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -685,6 +600,33 @@ void Renderer::BuildPSOs()
 	opaquePsoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
 	opaquePsoDesc.DSVFormat = mDepthStencilFormat;
     ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&mPSOs["opaque"])));
+
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC firePsoDesc = opaquePsoDesc;
+	firePsoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["fireVS"]->GetBufferPointer()),
+		mShaders["fireVS"]->GetBufferSize()
+	};
+	firePsoDesc.PS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["firePS"]->GetBufferPointer()),
+		mShaders["firePS"]->GetBufferSize()
+	};
+	D3D12_RENDER_TARGET_BLEND_DESC transparencyBlendDesc;
+	transparencyBlendDesc.BlendEnable = true;
+	transparencyBlendDesc.LogicOpEnable = false;
+	transparencyBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+	transparencyBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+	transparencyBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+	transparencyBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+	transparencyBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+	transparencyBlendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+	transparencyBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	firePsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
+
+	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&firePsoDesc, IID_PPV_ARGS(&mPSOs["fire"])));
 }
 
 void Renderer::BuildFrameResources()

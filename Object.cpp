@@ -4,7 +4,7 @@
 
 void RenderItem::Update(float elapsedTime)
 {
-	m_standardBox->Transform(m_boundingBox, XMLoadFloat4x4(&World));
+	mStandardBox->Transform(mBoundingBox, XMLoadFloat4x4(&World));
 }
 
 
@@ -13,15 +13,15 @@ void Player::Move(bool inverse)
 {
 	if (!inverse)
 	{
-		World._41 += m_dir.x;
-		World._43 += m_dir.z;
+		World._41 += mDir.x;
+		World._43 += mDir.z;
 	}
 	else
 	{
-		World._41 -= m_dir.x;
-		World._43 -= m_dir.z;
+		World._41 -= mDir.x;
+		World._43 -= mDir.z;
 	}
-	m_standardBox->Transform(m_boundingBox, XMLoadFloat4x4(&World));
+	mStandardBox->Transform(mBoundingBox, XMLoadFloat4x4(&World));
 }
 
 void Player::Update(float elapsedTime)

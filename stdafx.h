@@ -42,3 +42,5 @@ using namespace DirectX::PackedVector;
 
 #define PLAYER1 1
 #define PLAYER2 2
+
+#define MAX_TEXTURE 16

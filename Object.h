@@ -41,12 +41,12 @@ struct RenderItem
 	int BaseVertexLocation = 0;
 
 	//Collision
-	BoundingBox			m_boundingBox;
-	BoundingBox*		m_standardBox;
-	UINT				Tag;
+	BoundingBox			mBoundingBox;
+	BoundingBox*		mStandardBox;
+	UINT				mTag;
 
-	float m_speed = 10;
-	XMFLOAT3 m_dir = { 0,0,0 };
+	float mSpeed = 10;
+	XMFLOAT3 mDir = { 0,0,0 };
 
 	virtual void Update(float elapsedTime);
 };
@@ -56,11 +56,11 @@ struct Player : public RenderItem
 {
 	void Walk(float amount)
 	{
-		m_dir.z += amount * m_speed;
+		mDir.z += amount * mSpeed;
 	}
 	void Strafe(float amount)
 	{
-		m_dir.x +=  amount * m_speed;
+		mDir.x +=  amount * mSpeed;
 	}
 	void Move(bool inverse = false);
 	void Update(float elapsedTime);

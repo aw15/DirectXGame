@@ -1,6 +1,7 @@
 //***************************************************************************************
 // Default.hlsl by Frank Luna (C) 2015 All Rights Reserved.
 //***************************************************************************************
+#define MAX_TEXTURE 16
 
 // Defaults for number of lights.
 #ifndef NUM_DIR_LIGHTS
@@ -33,7 +34,7 @@ struct MaterialData
 
 // An array of textures, which is only supported in shader model 5.1+.  Unlike Texture2DArray, the textures
 // in this array can be different sizes and formats, making it more flexible than texture arrays.
-Texture2D gDiffuseMap[4] : register(t0);
+Texture2D gDiffuseMap[MAX_TEXTURE] : register(t0);
 
 // Put in space1, so the texture array does not overlap with these resources.  
 // The texture array will occupy registers t0, t1, ..., t3 in space0. 
@@ -76,7 +77,6 @@ cbuffer cbPass : register(b1)
     float gTotalTime;
     float gDeltaTime;
     float4 gAmbientLight;
-
     // Indices [0, NUM_DIR_LIGHTS) are directional lights;
     // indices [NUM_DIR_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHTS) are point lights;
     // indices [NUM_DIR_LIGHTS+NUM_POINT_LIGHTS, NUM_DIR_LIGHTS+NUM_POINT_LIGHT+NUM_SPOT_LIGHTS)

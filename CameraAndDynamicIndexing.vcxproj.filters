@@ -111,10 +111,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\firePS.hlsl">
-      <Filter>Shader</Filter>
-    </None>
-    <None Include="Shaders\fireVS.hlsl">
+    <None Include="Shaders\Fire.hlsl">
       <Filter>Shader</Filter>
     </None>
   </ItemGroup>

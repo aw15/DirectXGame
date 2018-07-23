@@ -17,7 +17,6 @@ public:
 	Renderer& operator=(const Renderer& rhs) = delete;
 	~Renderer();
 	virtual bool Initialize() override;
-
 protected:
 	virtual void OnResize()override;
 	virtual void Update(const GameTimer& gt)override;
@@ -33,7 +32,6 @@ protected:
 	void UpdateMaterialBuffer(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
 
-	void LoadTextures();
 	void LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel = { 0.05f, 0.05f, 0.05f }, XMFLOAT4 albedo = { 1.0f, 1.0f, 1.0f, 1.0f }, float rough = 0.0f);
 	void BuildRootSignature();
 	void BuildDescriptorHeaps();
