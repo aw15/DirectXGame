@@ -112,6 +112,9 @@
     <FxCompile Include="Shaders\TreeSprite.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\BasicHeader.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Fire.hlsl">

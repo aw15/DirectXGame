@@ -46,3 +46,5 @@ using namespace DirectX::PackedVector;
 #define MAX_TEXTURE 16
 
 #define EXPLOSIVE_COOLTIME 3
+
+#define ROOT_SIGNITURE_SLOT 5
