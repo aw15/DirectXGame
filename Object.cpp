@@ -27,4 +27,23 @@ void Player::Move(bool inverse)
 void Player::Update(float elapsedTime)
 {
 	Move();
+	mStandardBox->Transform(mBoundingBox, XMLoadFloat4x4(&World));
+}
+
+void Bomb::Update(float elapsedTime)
+{
+	mLifetime += elapsedTime;
+}
+
+void Fire::Update(float elapsedTime)
+{
+	mLifetime += elapsedTime;
+	//auto rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mRotation));
+
+	//XMStoreFloat4x4(&World, XMMatrixScaling(mScale.x,mScale.y,mScale.z)*rotation);
+	//World._41 = mPosition.x;
+	//World._42 = mPosition.y;
+	//World._43 = mPosition.z;
+
+	//XMStoreFloat4x4(&TexTransform, XMMatrixScaling(1, 1, 1));
 }

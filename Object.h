@@ -45,10 +45,16 @@ struct RenderItem
 	BoundingBox*		mStandardBox;
 	UINT				mTag;
 
-	float mSpeed = 10;
-	XMFLOAT3 mDir = { 0,0,0 };
+	float				mSpeed = 10;
+	XMFLOAT3			mDir = { 0,0,0 }; 
+	XMFLOAT3			mPosition = { 0,0,0 };
+	XMFLOAT3			mRotation = { 0,0,0 };
+	XMFLOAT3			mScale = { 1,1,1 };
 
 	virtual void Update(float elapsedTime);
+	XMFLOAT3 GetPosition3f() { return { World._41,World._42,World._43 }; }
+	XMVECTOR GetPosition() { return XMLoadFloat3(&XMFLOAT3{ World._41,World._42,World._43 }); }
+	XMMATRIX GetWorldMatrix() { return XMLoadFloat4x4(&World); }
 };
 
 
@@ -65,3 +71,24 @@ struct Player : public RenderItem
 	void Move(bool inverse = false);
 	void Update(float elapsedTime);
 };
+
+struct Bomb :public RenderItem
+{
+private:
+	float	mLifetime = 0;
+	int		mplayerID;
+public:
+	void Update(float elapsedTime);
+	inline float GetLifetime() { return mLifetime; }
+	inline void SetPlayerID(const int ID) { mplayerID = ID; }
+};
+
+struct Fire :public RenderItem
+{
+private:
+	float	mLifetime = 0;
+public:
+	void Update(float elapsedTime);
+	inline float GetLifetime() { return mLifetime; }
+};
+

@@ -113,9 +113,6 @@ struct PixelInputType
 {
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
-   	float2 texCoords1 : TEXCOORD1;
-	float2 texCoords2 : TEXCOORD2;
-	float2 texCoords3 : TEXCOORD3;
 };
 
 
@@ -126,8 +123,7 @@ PixelInputType FireVertexShader(VertexInputType input)
 {
     PixelInputType output;
     
-    float3 gScrollSpeeds = { 1.3f, 2.1f, 2.3f };
-    float3 gScales = { 1.0f, 2.0f, 3.0f };
+
 
 	// Change the position vector to be 4 units for proper matrix calculations.
     input.position.w = 1.0f;
@@ -139,18 +135,8 @@ PixelInputType FireVertexShader(VertexInputType input)
     
 	// Store the texture coordinates for the pixel shader.
 	output.tex = input.tex;
+ 
 
-    // Compute texture coordinates for first noise texture using the first scale and upward scrolling speed values.
-	output.texCoords1 = (input.tex * gScales.x);
-    output.texCoords1.y = output.texCoords1.y + (gTotalTime * gScrollSpeeds.x);
-
-    // Compute texture coordinates for second noise texture using the second scale and upward scrolling speed values.
-	output.texCoords2 = (input.tex * gScales.y);
-    output.texCoords2.y = output.texCoords2.y + (gTotalTime * gScrollSpeeds.y);
-
-    // Compute texture coordinates for third noise texture using the third scale and upward scrolling speed values.
-	output.texCoords3 = (input.tex * gScales.z);
-    output.texCoords3.y = output.texCoords3.y + (gTotalTime * gScrollSpeeds.z);
 	
     return output;
 }
@@ -170,17 +156,32 @@ float4 FirePixelShader(PixelInputType input) : SV_TARGET
     float4 fireColor;
     float4 alphaColor;
 
-
     float2 distortion1 = {0.1f, 0.2f};
     float2 distortion2 = {0.1f, 0.3f};
     float2 distortion3 = {0.1f, 0.1f};
     float distortionScale = 0.8f;
     float distortionBias = 0.5f;
 
+
+    float3 gScrollSpeeds = { 1.3f, 2.1f, 2.3f };
+    float3 gScales = { 1.0f, 2.0f, 3.0f };
+
+    // Compute texture coordinates for first noise texture using the first scale and upward scrolling speed values.
+    float2 texCoords1 = (input.tex * gScales.x);
+    texCoords1.y = texCoords1.y + (gTotalTime * gScrollSpeeds.x);
+
+    // Compute texture coordinates for second noise texture using the second scale and upward scrolling speed values.
+    float2 texCoords2 = (input.tex * gScales.y);
+    texCoords2.y = texCoords2.y + (gTotalTime * gScrollSpeeds.y);
+
+    // Compute texture coordinates for third noise texture using the third scale and upward scrolling speed values.
+    float2 texCoords3 = (input.tex * gScales.z);
+    texCoords3.y = texCoords3.y + (gTotalTime * gScrollSpeeds.z);
+
 	// Sample the same noise texture using the three different texture coordinates to get three different noise scales.
-    noise1 = gDiffuseMap[FIRE_NOISE].Sample(gsamLinearWrap, input.texCoords1);
-    noise2 = gDiffuseMap[FIRE_NOISE].Sample(gsamLinearWrap, input.texCoords2);
-    noise3 = gDiffuseMap[FIRE_NOISE].Sample(gsamLinearWrap, input.texCoords3);
+    noise1 = gDiffuseMap[FIRE_NOISE].Sample(gsamLinearWrap, texCoords1);
+    noise2 = gDiffuseMap[FIRE_NOISE].Sample(gsamLinearWrap, texCoords2);
+    noise3 = gDiffuseMap[FIRE_NOISE].Sample(gsamLinearWrap, texCoords3);
 
 	// Move the noise from the (0, 1) range to the (-1, +1) range.
     noise1 = (noise1 - 0.5f) * 2.0f;

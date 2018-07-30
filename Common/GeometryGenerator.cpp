@@ -655,3 +655,4 @@ GeometryGenerator::MeshData GeometryGenerator::CreateQuad(float x, float y, floa
 
     return meshData;
 }
+

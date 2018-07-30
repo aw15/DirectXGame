@@ -37,11 +37,10 @@ protected:
 	void BuildDescriptorHeaps();
 	void BuildShadersAndInputLayout();
 	void BuildShapeGeometry();
+
 	void LoadOBJModel(const char* path, std::string name);
 	void BuildPSOs();
 	void BuildFrameResources();
-	void BuildMaterials();
-	void BuildRenderItems();
 	void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
 
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
@@ -65,14 +64,16 @@ protected:
 	std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> mPSOs;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
-
+	std::vector<D3D12_INPUT_ELEMENT_DESC> mTreeSpriteInputLayout;
 	// List of all the render items.
 	std::vector<std::unique_ptr<RenderItem>> mAllRitems;
 
 	// Render items divided by PSO.
-	std::vector<RenderItem*> mOpaqueRitems;
+	std::vector<RenderItem*> mBoxRitems;
 	std::vector<RenderItem*> mBombRitems;
 	std::vector<RenderItem*> mPlayerRitems;
+	std::vector<RenderItem*> mFireRitems;
+
 
 	PassConstants mMainPassCB;
 

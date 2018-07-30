@@ -44,3 +44,5 @@ using namespace DirectX::PackedVector;
 #define PLAYER2 2
 
 #define MAX_TEXTURE 16
+
+#define EXPLOSIVE_COOLTIME 3

@@ -16,12 +16,14 @@ public:
 	void Update(const GameTimer& gt) override;
 	void Draw(const GameTimer& gt) override;
 	void CreateBomb(int playerID=PLAYER1);
-	void DestroyBomb();
+	void CreateFire(XMFLOAT3& position);
+	void DestroyItem(int index, std::vector<RenderItem*>& items);
 	void RebuildFrameResouce();
 private:
 	Player* m_player1;
 	Player* m_player2;
 	int		m_objectConstantCount = 0;
+
 
 
 

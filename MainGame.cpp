@@ -52,31 +52,31 @@ MainGame::~MainGame()
 
 void MainGame::BuildMap()
 {
-	//for (int i = 0; i < 10; ++i)
-	//{
-	//	for (int j = 0; j < 10; j++)
-	//	{
-	//		if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
-	//		{
-	//			auto boxRitem = std::make_unique<RenderItem>();
-	//			XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(i*2.0f, 0.0f, j*2.0f));
-	//			XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-	//			boxRitem->ObjCBIndex = m_objectConstantCount++;
-	//			boxRitem->Mat = mMaterials["crate"].get();
-	//			boxRitem->Geo = mGeometries["shapeGeo"].get();
-	//			boxRitem->mTag = BOX;
-	//			boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	//			boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
-	//			boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
-	//			boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
-	//			boxRitem->mStandardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
-	//			mAllRitems.push_back(std::move(boxRitem));
-	//		}
-	//	}
-	//}
-	// All the render items are opaque.
-	//for (auto& e : mAllRitems)
-	//	mOpaqueRitems.push_back(e.get());
+	for (int i = 0; i < 10; ++i)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
+			{
+				auto boxRitem = std::make_unique<RenderItem>();
+				XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2,2,2)*XMMatrixTranslation(i*2.0f, 0.0f, j*2.0f));
+				XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1, 1, 1));
+				boxRitem->ObjCBIndex = m_objectConstantCount++;
+				boxRitem->Mat = mMaterials["crate"].get();
+				boxRitem->Geo = mGeometries["shapeGeo"].get();
+				boxRitem->mTag = BOX;
+				boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+				boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
+				boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+				boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+				boxRitem->mStandardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
+				mAllRitems.push_back(std::move(boxRitem));
+			}
+		}
+	}
+	 //All the render items are opaque.
+	for (auto& e : mAllRitems)
+		mBoxRitems.push_back(e.get());
 
 	auto player2 = std::make_unique<Player>();
 	XMStoreFloat4x4(&player2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(15.5f, 0.0f, 5.0f));
@@ -135,28 +135,25 @@ void MainGame::OnKeyboardInput(const GameTimer & gt)
 		mCamera.Strafe(10 * dt);
 	}
 
-		if (GetAsyncKeyState('W') & 0x8000)
-			m_player1->Walk(dt);
+	if (GetAsyncKeyState('W') & 0x8000)
+		m_player1->Walk(dt);
 
-		if (GetAsyncKeyState('S') & 0x8000)
-			m_player1->Walk(-dt);
+	if (GetAsyncKeyState('S') & 0x8000)
+		m_player1->Walk(-dt);
 
-		if (GetAsyncKeyState('A') & 0x8000)
-			m_player1->Strafe(-dt);
+	if (GetAsyncKeyState('A') & 0x8000)
+		m_player1->Strafe(-dt);
 
-		if (GetAsyncKeyState('D') & 0x8000)
-			m_player1->Strafe(dt);
+	if (GetAsyncKeyState('D') & 0x8000)
+		m_player1->Strafe(dt);
 
-		if (GetAsyncKeyState('R') & 0x8000)
-		{
-			CreateBomb(PLAYER1);
-		}
-
-		if (GetAsyncKeyState('Q') & 0x8000)
-		{
-		
-			DestroyBomb();
-		}
+	if (GetAsyncKeyState('R') & 0x8000)
+	{
+		CreateBomb(PLAYER1);
+	}
+	if (GetAsyncKeyState('Q') & 0x8000)
+	{
+	}
 
 	mCamera.UpdateViewMatrix();
 	m_player1->NumFramesDirty = gNumFrameResources;
@@ -166,27 +163,46 @@ void MainGame::OnKeyboardInput(const GameTimer & gt)
 void MainGame::Update(const GameTimer & gt)
 {
 	OnKeyboardInput(gt);
-	for (auto& e : mAllRitems)
+	for (auto& player : mPlayerRitems)
 	{
-		// Only update the cbuffer data if the constants have changed.  
-		// This needs to be tracked per frame resource.
-		if (e->NumFramesDirty > 0)
+		player->Update(gt.DeltaTime());
+		for (auto& box : mBoxRitems)
 		{
-			e->Update(gt.DeltaTime());
-			if (e->mTag == PLAYER)
+			box->Update(gt.DeltaTime());
+			if (player->NumFramesDirty > 0)
 			{
-				
-				for (auto& item : mAllRitems)
+				if (player->mBoundingBox.Intersects(box->mBoundingBox))
 				{
-					if (item->mTag == BOX && item->mBoundingBox.Intersects(e->mBoundingBox))
-					{
-						e->Move(INVERSE);
-						break;
-					}
+					player->Move(INVERSE);
 				}
-				e->mDir = { 0,0,0 };
 			}
+		}
+		player->mDir = { 0,0,0 };
+	}
+	
+	for (int i =0; i<mBombRitems.size();i++)
+	{
+		mBombRitems[i]->Update(gt.DeltaTime());
+		mBombRitems[i]->NumFramesDirty = gNumFrameResources;
+		if (((Bomb*)mBombRitems[i])->GetLifetime() > EXPLOSIVE_COOLTIME)
+		{
+			CreateFire(mBombRitems[i]->GetPosition3f());
+			DestroyItem(i,mBombRitems);
+		}
+	}
 
+	for (int i = 0; i < mFireRitems.size(); i++)
+	{
+		//auto cameraPosition = mCamera.GetPosition3f();
+		//auto position = mFireRitems[i]->GetPosition3f();
+		//auto angle = atan2f(position.y - cameraPosition.y, position.z - cameraPosition.z)*(180.0f/XM_PI);
+		//auto rotation = (float)angle * 0.0174532925f;
+		//mFireRitems[i]->mRotation.x = 0.5*XM_PI;
+		//mFireRitems[i]->NumFramesDirty = gNumFrameResources;
+		mFireRitems[i]->Update(gt.DeltaTime());
+		if (((Fire*)mFireRitems[i])->GetLifetime() > EXPLOSIVE_COOLTIME)
+		{
+			DestroyItem(i, mFireRitems);
 		}
 	}
 
@@ -206,13 +222,15 @@ void MainGame::CreateBomb(int playerID)
 	if (playerID == PLAYER2)
 		player = m_player2;
 
-	auto bomb = std::make_unique<RenderItem>();
-	XMStoreFloat4x4(&bomb->World, XMMatrixScaling(10.0f, 10.0f, 10.0f)*XMMatrixTranslation(player->World._41, player->World._42, player->World._43));
+	auto bomb = std::make_unique<Bomb>();
+	XMStoreFloat4x4(&bomb->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(player->World._41, player->World._42, player->World._43));
 	XMStoreFloat4x4(&bomb->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+	bomb->mPosition = { player->World._41, player->World._42, player->World._43 };
+	bomb->SetPlayerID(playerID);
+	bomb->mTag = BOMB;
 	bomb->ObjCBIndex = m_objectConstantCount++;
 	bomb->Mat = mMaterials["default"].get();
 	bomb->Geo = mGeometries["shapeGeo"].get();
-	bomb->mTag = BOMB;
 	bomb->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	bomb->IndexCount = bomb->Geo->DrawArgs["box"].IndexCount;
 	bomb->StartIndexLocation = bomb->Geo->DrawArgs["box"].StartIndexLocation;
@@ -223,19 +241,40 @@ void MainGame::CreateBomb(int playerID)
 	RebuildFrameResouce();
 }
 
-
-void MainGame::DestroyBomb()
+void MainGame::CreateFire(XMFLOAT3& position)
 {
-	if (!mBombRitems.empty())
+	auto fire = std::make_unique<Fire>();
+	XMStoreFloat4x4(&fire->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(position.x,position.y,position.z));
+	XMStoreFloat4x4(&fire->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+	fire->mScale = { 1,1,1 };
+	fire->mPosition = { position.x,position.y,position.z };
+	fire->mTag = BOMB;
+	fire->ObjCBIndex = m_objectConstantCount++;
+	fire->Mat = mMaterials["default"].get();
+	fire->Geo = mGeometries["shapeGeo"].get();
+	fire->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	fire->IndexCount = fire->Geo->DrawArgs["box"].IndexCount;
+	fire->StartIndexLocation = fire->Geo->DrawArgs["box"].StartIndexLocation;
+	fire->BaseVertexLocation = fire->Geo->DrawArgs["box"].BaseVertexLocation;
+	fire->mStandardBox = &(fire->Geo->DrawArgs["box"].Bounds);
+	mAllRitems.push_back(std::move(fire));
+	mFireRitems.push_back(mAllRitems.back().get());
+	RebuildFrameResouce();
+}
+
+
+void MainGame::DestroyItem(int index, std::vector<RenderItem*>& items )
+{
+	if (!items.empty())
 	{
-		auto bomb = mBombRitems.back();
-		auto bombAtAllitems = find_if(mAllRitems.begin(), mAllRitems.end(), [&bomb](std::unique_ptr<RenderItem>& item)
+		auto item = items[index];
+		auto itemAtAllitems = find_if(mAllRitems.begin(), mAllRitems.end(), [&item](std::unique_ptr<RenderItem>& target)
 		{
-			return item.get() == bomb;
+			return target.get() == item;
 		});
-		mBombRitems.erase(mBombRitems.end() - 1);
-		bombAtAllitems->release();
-		mAllRitems.erase(bombAtAllitems);
+		items.erase(items.begin() + index);
+		itemAtAllitems->release();
+		mAllRitems.erase(itemAtAllitems);
 		TEST("DELETE");
 		RebuildFrameResouce();
 	}
