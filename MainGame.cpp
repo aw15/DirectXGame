@@ -52,63 +52,23 @@ MainGame::~MainGame()
 
 void MainGame::BuildMap()
 {
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 12; ++i)
 	{
-		for (int j = 0; j < 10; j++)
+		for (int j = 0; j < 12; j++)
 		{
-			if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
+			if (i == 0 || i == 11 || j == 0 || j == 11)
 			{
-				auto boxRitem = std::make_unique<RenderItem>();
-				XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(2,2,2)*XMMatrixTranslation(i*2.0f, 0.0f, j*2.0f));
-				XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1, 1, 1));
-				boxRitem->ObjCBIndex = m_objectConstantCount++;
-				boxRitem->Mat = mMaterials["crate"].get();
-				boxRitem->Geo = mGeometries["shapeGeo"].get();
-				boxRitem->mTag = BOX;
-				boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-				boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
-				boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
-				boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
-				boxRitem->mStandardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
-				mAllRitems.push_back(std::move(boxRitem));
+				CreateObject(SORT::boundary, "default", { (i * 2.0f),0, (j* 2.0f) }, { 2.0f,2.0f,2.0f });
+			}
+			else if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
+			{
+				CreateObject(SORT::box, "crate" ,{ (i * 2.0f),0, (j* 2.0f) }, { 2.0f,2.0f,2.0f });
 			}
 		}
 	}
-	 //All the render items are opaque.
-	for (auto& e : mAllRitems)
-		mBoxRitems.push_back(e.get());
 
-	auto player2 = std::make_unique<Player>();
-	XMStoreFloat4x4(&player2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(15.5f, 0.0f, 5.0f));
-	XMStoreFloat4x4(&player2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-	player2->ObjCBIndex = m_objectConstantCount++;
-	player2->Mat = mMaterials["default"].get();
-	player2->Geo = mGeometries["shapeGeo"].get();
-	player2->mTag = PLAYER;
-	player2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	player2->IndexCount = player2->Geo->DrawArgs["cylinder"].IndexCount;
-	player2->StartIndexLocation = player2->Geo->DrawArgs["cylinder"].StartIndexLocation;
-	player2->BaseVertexLocation = player2->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-	player2->mStandardBox = &(player2->Geo->DrawArgs["cylinder"].Bounds);
-	m_player2 = player2.get();
-	mAllRitems.push_back(std::move(player2));
-	mPlayerRitems.push_back(mAllRitems.back().get());
+	CreateObject(SORT::player);
 
-	auto player1 = std::make_unique<Player>();
-	XMStoreFloat4x4(&player1->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(5.0f, 0.0f, 15.5f));
-	XMStoreFloat4x4(&player1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-	player1->ObjCBIndex = m_objectConstantCount++;
-	player1->Mat = mMaterials["default"].get();
-	player1->Geo = mGeometries["shapeGeo"].get();
-	player1->mTag = PLAYER;
-	player1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	player1->IndexCount = player1->Geo->DrawArgs["cylinder"].IndexCount;
-	player1->StartIndexLocation = player1->Geo->DrawArgs["cylinder"].StartIndexLocation;
-	player1->BaseVertexLocation = player1->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-	player1->mStandardBox = &(player1->Geo->DrawArgs["cylinder"].Bounds);
-	m_player1 = player1.get();
-	mAllRitems.push_back(std::move(player1));
-	mPlayerRitems.push_back(mAllRitems.back().get());
 }
 
 void MainGame::OnKeyboardInput(const GameTimer & gt)
@@ -116,57 +76,57 @@ void MainGame::OnKeyboardInput(const GameTimer & gt)
 	const float dt = gt.DeltaTime();
 	if (GetAsyncKeyState('T') & 0x8000)
 	{
-	//	m_player2->Walk(dt);
+		mPlayer[PLAYER2]->Walk(dt);
 		mCamera.Walk(10*dt);
 	}
 	if (GetAsyncKeyState('G') & 0x8000)
 	{
-	//	m_player2->Walk(-dt);
+		mPlayer[PLAYER2]->Walk(-dt);
 		mCamera.Walk(-10 * dt);
 	}
 	if (GetAsyncKeyState('F') & 0x8000)
 	{
-		//m_player2->Strafe(-dt);
+		mPlayer[PLAYER2]->Strafe(-dt);
 		mCamera.Strafe(-10 * dt);
 	}
 	if (GetAsyncKeyState('H') & 0x8000)
 	{
-	//	m_player2->Strafe(dt);
+		mPlayer[PLAYER2]->Strafe(dt);
 		mCamera.Strafe(10 * dt);
 	}
 
 	if (GetAsyncKeyState('W') & 0x8000)
-		m_player1->Walk(dt);
+		mPlayer[PLAYER1]->Walk(dt);
 
 	if (GetAsyncKeyState('S') & 0x8000)
-		m_player1->Walk(-dt);
+		mPlayer[PLAYER1]->Walk(-dt);
 
 	if (GetAsyncKeyState('A') & 0x8000)
-		m_player1->Strafe(-dt);
+		mPlayer[PLAYER1]->Strafe(-dt);
 
 	if (GetAsyncKeyState('D') & 0x8000)
-		m_player1->Strafe(dt);
+		mPlayer[PLAYER1]->Strafe(dt);
 
 	if (GetAsyncKeyState('R') & 0x8000)
 	{
-		CreateBomb(PLAYER1);
+		CreateObject(SORT::bomb,"default", { 0,0,0 }, {0,0,0}, PLAYER1);
 	}
 	if (GetAsyncKeyState('Q') & 0x8000)
 	{
 	}
 
 	mCamera.UpdateViewMatrix();
-	m_player1->NumFramesDirty = gNumFrameResources;
-	m_player2->NumFramesDirty = gNumFrameResources;
+	mPlayer[PLAYER1]->NumFramesDirty = gNumFrameResources;
+	mPlayer[PLAYER2]->NumFramesDirty = gNumFrameResources;
 }
 
 void MainGame::Update(const GameTimer & gt)
 {
 	OnKeyboardInput(gt);
-	for (auto& player : mPlayerRitems)
+	for (auto& player : mObjectLayer[SORT::player])
 	{
 		player->Update(gt.DeltaTime());
-		for (auto& box : mBoxRitems)
+		for (auto& box : mObjectLayer[SORT::box])
 		{
 			box->Update(gt.DeltaTime());
 			if (player->NumFramesDirty > 0)
@@ -177,32 +137,48 @@ void MainGame::Update(const GameTimer & gt)
 				}
 			}
 		}
+
+		for (auto& box : mObjectLayer[SORT::boundary])
+		{
+			box->Update(gt.DeltaTime());
+			if (player->NumFramesDirty > 0)
+			{
+				if (player->mBoundingBox.Intersects(box->mBoundingBox))
+				{
+					player->Move(INVERSE);
+				}
+			}
+		}
+
 		player->mDir = { 0,0,0 };
 	}
 	
-	for (int i =0; i<mBombRitems.size();i++)
+	for (int i =0; i<mObjectLayer[SORT::bomb].size();i++)
 	{
-		mBombRitems[i]->Update(gt.DeltaTime());
-		mBombRitems[i]->NumFramesDirty = gNumFrameResources;
-		if (((Bomb*)mBombRitems[i])->GetLifetime() > EXPLOSIVE_COOLTIME)
+		mObjectLayer[SORT::bomb][i]->Update(gt.DeltaTime());
+		mObjectLayer[SORT::bomb][i]->NumFramesDirty = gNumFrameResources;
+		if (((Bomb*)mObjectLayer[SORT::bomb][i])->GetLifetime() > EXPLOSIVE_COOLTIME)
 		{
-			CreateFire(mBombRitems[i]->GetPosition3f());
-			DestroyItem(i,mBombRitems);
+			CreateObject(SORT::fire,"default", mObjectLayer[SORT::bomb][i]->GetPosition3f());
+			DestroyItem(i, mObjectLayer[SORT::bomb]);
 		}
 	}
 
-	for (int i = 0; i < mFireRitems.size(); i++)
+	for (int i = 0; i < mObjectLayer[SORT::fire].size(); i++)
 	{
-		//auto cameraPosition = mCamera.GetPosition3f();
-		//auto position = mFireRitems[i]->GetPosition3f();
-		//auto angle = atan2f(position.y - cameraPosition.y, position.z - cameraPosition.z)*(180.0f/XM_PI);
-		//auto rotation = (float)angle * 0.0174532925f;
-		//mFireRitems[i]->mRotation.x = 0.5*XM_PI;
-		//mFireRitems[i]->NumFramesDirty = gNumFrameResources;
-		mFireRitems[i]->Update(gt.DeltaTime());
-		if (((Fire*)mFireRitems[i])->GetLifetime() > EXPLOSIVE_COOLTIME)
+		mObjectLayer[SORT::fire][i]->Update(gt.DeltaTime());
+		for (int j=0 ; j < mObjectLayer[SORT::box].size();j++)
 		{
-			DestroyItem(i, mFireRitems);
+			if (mObjectLayer[SORT::fire][i]->mBoundingBox.Contains(mObjectLayer[SORT::box][j]->mBoundingBox))
+			{
+				TEST("collision");
+				DestroyItem(j, mObjectLayer[SORT::box]);
+			}
+
+		}
+		if (((Fire*)mObjectLayer[SORT::fire][i])->GetLifetime() > EXPLOSIVE_COOLTIME)
+		{
+			DestroyItem(i, mObjectLayer[SORT::fire]);
 		}
 	}
 
@@ -214,52 +190,158 @@ void MainGame::Draw(const GameTimer & gt)
 	Renderer::Draw(gt);
 }
 
-void MainGame::CreateBomb(int playerID)
-{
-	Player* player;
-	if (playerID == PLAYER1)
-		player = m_player1;
-	if (playerID == PLAYER2)
-		player = m_player2;
 
-	auto bomb = std::make_unique<Bomb>();
-	XMStoreFloat4x4(&bomb->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(player->World._41, player->World._42, player->World._43));
-	XMStoreFloat4x4(&bomb->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-	bomb->mPosition = { player->World._41, player->World._42, player->World._43 };
-	bomb->SetPlayerID(playerID);
-	bomb->mTag = BOMB;
-	bomb->ObjCBIndex = m_objectConstantCount++;
-	bomb->Mat = mMaterials["default"].get();
-	bomb->Geo = mGeometries["shapeGeo"].get();
-	bomb->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	bomb->IndexCount = bomb->Geo->DrawArgs["box"].IndexCount;
-	bomb->StartIndexLocation = bomb->Geo->DrawArgs["box"].StartIndexLocation;
-	bomb->BaseVertexLocation = bomb->Geo->DrawArgs["box"].BaseVertexLocation;
-	bomb->mStandardBox = &(bomb->Geo->DrawArgs["box"].Bounds);
-	mAllRitems.push_back(std::move(bomb));
-	mBombRitems.push_back(mAllRitems.back().get());
-	RebuildFrameResouce();
-}
 
-void MainGame::CreateFire(XMFLOAT3& position)
+void MainGame::CreateObject(const SORT category, const char* materialName , const XMFLOAT3 & position, const XMFLOAT3 & scale,const UINT playerID)
 {
-	auto fire = std::make_unique<Fire>();
-	XMStoreFloat4x4(&fire->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(position.x,position.y,position.z));
-	XMStoreFloat4x4(&fire->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-	fire->mScale = { 1,1,1 };
-	fire->mPosition = { position.x,position.y,position.z };
-	fire->mTag = BOMB;
-	fire->ObjCBIndex = m_objectConstantCount++;
-	fire->Mat = mMaterials["default"].get();
-	fire->Geo = mGeometries["shapeGeo"].get();
-	fire->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-	fire->IndexCount = fire->Geo->DrawArgs["box"].IndexCount;
-	fire->StartIndexLocation = fire->Geo->DrawArgs["box"].StartIndexLocation;
-	fire->BaseVertexLocation = fire->Geo->DrawArgs["box"].BaseVertexLocation;
-	fire->mStandardBox = &(fire->Geo->DrawArgs["box"].Bounds);
-	mAllRitems.push_back(std::move(fire));
-	mFireRitems.push_back(mAllRitems.back().get());
-	RebuildFrameResouce();
+	if (category == SORT::player)
+	{
+		auto player2 = std::make_unique<Player>();
+		XMStoreFloat4x4(&player2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(15.5f, 0.0f, 5.0f));
+		XMStoreFloat4x4(&player2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+		player2->ObjCBIndex = mObjectConstantCount++;
+		player2->Mat = mMaterials[materialName].get();
+		player2->Geo = mGeometries["shapeGeo"].get();
+		player2->mTag = PLAYER;
+		player2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		player2->IndexCount = player2->Geo->DrawArgs["cylinder"].IndexCount;
+		player2->StartIndexLocation = player2->Geo->DrawArgs["cylinder"].StartIndexLocation;
+		player2->BaseVertexLocation = player2->Geo->DrawArgs["cylinder"].BaseVertexLocation;
+		player2->mStandardBox = &(player2->Geo->DrawArgs["cylinder"].Bounds);
+		mPlayer[PLAYER2] = player2.get();
+		mAllRitems.push_back(std::move(player2));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+
+		auto player1 = std::make_unique<Player>();
+		XMStoreFloat4x4(&player1->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(5.0f, 0.0f, 15.5f));
+		XMStoreFloat4x4(&player1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+		player1->ObjCBIndex = mObjectConstantCount++;
+		player1->Mat = mMaterials[materialName].get();
+		player1->Geo = mGeometries["shapeGeo"].get();
+		player1->mTag = PLAYER;
+		player1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		player1->IndexCount = player1->Geo->DrawArgs["cylinder"].IndexCount;
+		player1->StartIndexLocation = player1->Geo->DrawArgs["cylinder"].StartIndexLocation;
+		player1->BaseVertexLocation = player1->Geo->DrawArgs["cylinder"].BaseVertexLocation;
+		player1->mStandardBox = &(player1->Geo->DrawArgs["cylinder"].Bounds);
+		mPlayer[PLAYER1] = player1.get();
+		mAllRitems.push_back(std::move(player1));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+	}
+	else if (category == SORT::bomb)
+	{
+		Player* player;
+		player = mPlayer[playerID];
+
+		auto bomb = std::make_unique<Bomb>();
+		XMStoreFloat4x4(&bomb->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(player->World._41, player->World._42, player->World._43));
+		XMStoreFloat4x4(&bomb->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+		bomb->mPosition = { player->World._41, player->World._42, player->World._43 };
+		bomb->SetPlayerID(playerID);
+		bomb->mTag = BOMB;
+		bomb->ObjCBIndex = mObjectConstantCount++;
+		bomb->Mat = mMaterials[materialName].get();
+		bomb->Geo = mGeometries["shapeGeo"].get();
+		bomb->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		bomb->IndexCount = bomb->Geo->DrawArgs["box"].IndexCount;
+		bomb->StartIndexLocation = bomb->Geo->DrawArgs["box"].StartIndexLocation;
+		bomb->BaseVertexLocation = bomb->Geo->DrawArgs["box"].BaseVertexLocation;
+		bomb->mStandardBox = &(bomb->Geo->DrawArgs["box"].Bounds);
+		mAllRitems.push_back(std::move(bomb));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+		RebuildFrameResouce();
+	}
+	else if (category == SORT::fire)
+	{
+		auto fire = std::make_unique<Fire>();
+		XMStoreFloat4x4(&fire->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(position.x , position.y, position.z));
+		XMStoreFloat4x4(&fire->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+		fire->mScale = { 1,1,1 };
+		fire->mPosition = { position.x,position.y,position.z };
+		fire->mTag = BOMB;
+		fire->ObjCBIndex = mObjectConstantCount++;
+		fire->Mat = mMaterials[materialName].get();
+		fire->Geo = mGeometries["shapeGeo"].get();
+		fire->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		fire->IndexCount = fire->Geo->DrawArgs["box"].IndexCount;
+		fire->StartIndexLocation = fire->Geo->DrawArgs["box"].StartIndexLocation;
+		fire->BaseVertexLocation = fire->Geo->DrawArgs["box"].BaseVertexLocation;
+		fire->mStandardBox = &(fire->Geo->DrawArgs["box"].Bounds);
+		mAllRitems.push_back(std::move(fire));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+
+		for (int i = -1; i <= 1; i+=2)
+		{
+			auto fire = std::make_unique<Fire>();
+			XMStoreFloat4x4(&fire->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(position.x+2*i, position.y, position.z));
+			XMStoreFloat4x4(&fire->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+			fire->mScale = { 1,1,1 };
+			fire->mPosition = { position.x,position.y,position.z };
+			fire->mTag = BOMB;
+			fire->ObjCBIndex = mObjectConstantCount++;
+			fire->Mat = mMaterials[materialName].get();
+			fire->Geo = mGeometries["shapeGeo"].get();
+			fire->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			fire->IndexCount = fire->Geo->DrawArgs["box"].IndexCount;
+			fire->StartIndexLocation = fire->Geo->DrawArgs["box"].StartIndexLocation;
+			fire->BaseVertexLocation = fire->Geo->DrawArgs["box"].BaseVertexLocation;
+			fire->mStandardBox = &(fire->Geo->DrawArgs["box"].Bounds);
+			mAllRitems.push_back(std::move(fire));
+			mObjectLayer[category].push_back(mAllRitems.back().get());
+
+			fire = std::make_unique<Fire>();
+			XMStoreFloat4x4(&fire->World, XMMatrixScaling(2.0f, 2.0f, 2.0f)*XMMatrixTranslation(position.x , position.y, position.z + 2*i));
+			XMStoreFloat4x4(&fire->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+			fire->mScale = { 1,1,1 };
+			fire->mPosition = { position.x,position.y,position.z };
+			fire->mTag = BOMB;
+			fire->ObjCBIndex = mObjectConstantCount++;
+			fire->Mat = mMaterials[materialName].get();
+			fire->Geo = mGeometries["shapeGeo"].get();
+			fire->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			fire->IndexCount = fire->Geo->DrawArgs["box"].IndexCount;
+			fire->StartIndexLocation = fire->Geo->DrawArgs["box"].StartIndexLocation;
+			fire->BaseVertexLocation = fire->Geo->DrawArgs["box"].BaseVertexLocation;
+			fire->mStandardBox = &(fire->Geo->DrawArgs["box"].Bounds);
+			mAllRitems.push_back(std::move(fire));
+			mObjectLayer[category].push_back(mAllRitems.back().get());
+		}
+		RebuildFrameResouce();
+	}
+	else if (category == SORT::box)
+	{
+		auto boxRitem = std::make_unique<RenderItem>();
+		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(scale.x,scale.y,scale.z)*XMMatrixTranslation(position.x, position.y, position.z));
+		XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1, 1, 1));
+		boxRitem->ObjCBIndex = mObjectConstantCount++;
+		boxRitem->Mat = mMaterials[materialName].get();
+		boxRitem->Geo = mGeometries["shapeGeo"].get();
+		boxRitem->mTag = BOX;
+		boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
+		boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+		boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+		boxRitem->mStandardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
+		mAllRitems.push_back(std::move(boxRitem));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+	}
+	else if (category == SORT::boundary)
+	{
+		auto boxRitem = std::make_unique<RenderItem>();
+		XMStoreFloat4x4(&boxRitem->World, XMMatrixScaling(scale.x, scale.y, scale.z)*XMMatrixTranslation(position.x, position.y, position.z));
+		XMStoreFloat4x4(&boxRitem->TexTransform, XMMatrixScaling(1, 1, 1));
+		boxRitem->ObjCBIndex = mObjectConstantCount++;
+		boxRitem->Mat = mMaterials[materialName].get();
+		boxRitem->Geo = mGeometries["shapeGeo"].get();
+		boxRitem->mTag = BOX;
+		boxRitem->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		boxRitem->IndexCount = boxRitem->Geo->DrawArgs["box"].IndexCount;
+		boxRitem->StartIndexLocation = boxRitem->Geo->DrawArgs["box"].StartIndexLocation;
+		boxRitem->BaseVertexLocation = boxRitem->Geo->DrawArgs["box"].BaseVertexLocation;
+		boxRitem->mStandardBox = &(boxRitem->Geo->DrawArgs["box"].Bounds);
+		mAllRitems.push_back(std::move(boxRitem));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+	}
 }
 
 
@@ -275,7 +357,6 @@ void MainGame::DestroyItem(int index, std::vector<RenderItem*>& items )
 		items.erase(items.begin() + index);
 		itemAtAllitems->release();
 		mAllRitems.erase(itemAtAllitems);
-		TEST("DELETE");
 		RebuildFrameResouce();
 	}
 }
@@ -286,10 +367,10 @@ void MainGame::RebuildFrameResouce()
 	{
   		mFrameResources[i]->RebuildResource(md3dDevice.Get(), mAllRitems.size());
 	}
-	m_objectConstantCount = 0;
+	mObjectConstantCount = 0;
 	for (auto& item : mAllRitems)
 	{
-		item->ObjCBIndex = m_objectConstantCount++;
+		item->ObjCBIndex = mObjectConstantCount++;
 		item->NumFramesDirty = gNumFrameResources;
 	}
 }

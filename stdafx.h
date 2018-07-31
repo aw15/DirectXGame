@@ -40,11 +40,21 @@ using namespace DirectX::PackedVector;
 
 #define INVERSE true
 
-#define PLAYER1 1
-#define PLAYER2 2
+#define PLAYER1 0
+#define PLAYER2 1
 
 #define MAX_TEXTURE 16
 
 #define EXPLOSIVE_COOLTIME 3
 
-#define ROOT_SIGNITURE_SLOT 5
+#define ROOT_SIGNITURE_SLOT 4
+
+enum SORT
+{
+	player=0,
+	box,
+	bomb,
+	fire,
+	boundary,
+	count
+};

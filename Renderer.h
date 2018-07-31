@@ -1,14 +1,6 @@
 #pragma once
 #include"Object.h"
 
-
-
-
-
-
-
-
-
 class Renderer : public D3DApp
 {
 public:
@@ -69,10 +61,8 @@ protected:
 	std::vector<std::unique_ptr<RenderItem>> mAllRitems;
 
 	// Render items divided by PSO.
-	std::vector<RenderItem*> mBoxRitems;
-	std::vector<RenderItem*> mBombRitems;
-	std::vector<RenderItem*> mPlayerRitems;
-	std::vector<RenderItem*> mFireRitems;
+	std::vector<RenderItem*> mObjectLayer[SORT::count];
+
 
 
 	PassConstants mMainPassCB;

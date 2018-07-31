@@ -4,7 +4,8 @@
 
 void RenderItem::Update(float elapsedTime)
 {
-	mStandardBox->Transform(mBoundingBox, XMLoadFloat4x4(&World));
+	mStandardBox->Transform(mBoundingBox, XMMatrixScaling(1.5, 1.5, 1.5)*XMMatrixTranslation(World._41, World._42, World._43));
+
 }
 
 
@@ -38,6 +39,8 @@ void Bomb::Update(float elapsedTime)
 void Fire::Update(float elapsedTime)
 {
 	mLifetime += elapsedTime;
+	
+	mStandardBox->Transform(mBoundingBox, XMMatrixScaling(1, 1, 1)*XMMatrixTranslation(World._41, World._42, World._43));
 	//auto rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mRotation));
 
 	//XMStoreFloat4x4(&World, XMMatrixScaling(mScale.x,mScale.y,mScale.z)*rotation);

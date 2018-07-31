@@ -112,12 +112,13 @@ void Renderer::Draw(const GameTimer& gt)
 	mCommandList->SetGraphicsRootDescriptorTable(3, mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 
-    DrawRenderItems(mCommandList.Get(), mBoxRitems);
-	DrawRenderItems(mCommandList.Get(), mPlayerRitems);
-	DrawRenderItems(mCommandList.Get(), mBombRitems);
+    DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::box]);
+	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::player]);
+	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::bomb]);
+	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::boundary]);
 	//불그리기
 	mCommandList->SetPipelineState(mPSOs["fire"].Get());
-	DrawRenderItems(mCommandList.Get(), mFireRitems);
+	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::fire]);
     // Indicate a state transition on the resource usage.
 	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(CurrentBackBuffer(),
 		D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT));
@@ -307,7 +308,6 @@ void Renderer::BuildRootSignature()
     slotRootParameter[1].InitAsConstantBufferView(1);
     slotRootParameter[2].InitAsShaderResourceView(0, 1);
 	slotRootParameter[3].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
-	slotRootParameter[4].InitAsShaderResourceView(1, 1);
 
 	auto staticSamplers = GetStaticSamplers();
 
@@ -682,7 +682,6 @@ void Renderer::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::ve
 		// tex.Offset(ri->Mat->DiffuseSrvHeapIndex, mCbvSrvDescriptorSize);
 
 		cmdList->SetGraphicsRootConstantBufferView(0, objCBAddress);
-		cmdList->SetGraphicsRootShaderResourceView(4, objCBAddress);
 
         cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
     }

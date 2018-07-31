@@ -64,7 +64,6 @@ Texture2D gDiffuseMap[MAX_TEXTURE] : register(t0);
 // Put in space1, so the texture array does not overlap with these resources.  
 // The texture array will occupy registers t0, t1, ..., t3 in space0. 
 StructuredBuffer<MaterialData> gMaterialData : register(t0, space1);
-StructuredBuffer<InstanceData> gInstanceData : register(t1, space1);
 
 SamplerState gsamPointWrap : register(s0);
 SamplerState gsamPointClamp : register(s1);

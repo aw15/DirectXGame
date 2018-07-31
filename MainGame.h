@@ -15,17 +15,12 @@ public:
 	void OnKeyboardInput(const GameTimer& gt) override;
 	void Update(const GameTimer& gt) override;
 	void Draw(const GameTimer& gt) override;
-	void CreateBomb(int playerID=PLAYER1);
-	void CreateFire(XMFLOAT3& position);
+	void CreateObject(const SORT category,const char* materialName = "default", const XMFLOAT3& position = {0,0,0}, const XMFLOAT3& scale = { 1,1,1 }, const UINT playerID = PLAYER1);
 	void DestroyItem(int index, std::vector<RenderItem*>& items);
 	void RebuildFrameResouce();
 private:
-	Player* m_player1;
-	Player* m_player2;
-	int		m_objectConstantCount = 0;
-
-
-
-
+	Player* mPlayer[2];
+	int		mObjectConstantCount = 0;
+	
 };
 
