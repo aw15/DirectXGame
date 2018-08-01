@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.22823.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CameraAndDynamicIndexing", "CameraAndDynamicIndexing.vcxproj", "{EBA44FF6-C000-495A-ABE9-E6848AF88F17}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelLoader", "ModelLoader\ModelLoader\ModelLoader.vcxproj", "{B742E11C-75E4-455E-9D69-48CB61AECAFF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,19 @@ Global
 		{EBA44FF6-C000-495A-ABE9-E6848AF88F17}.Release|x64.Build.0 = Release|x64
 		{EBA44FF6-C000-495A-ABE9-E6848AF88F17}.Release|x86.ActiveCfg = Release|Win32
 		{EBA44FF6-C000-495A-ABE9-E6848AF88F17}.Release|x86.Build.0 = Release|Win32
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Debug|x64.ActiveCfg = Debug|x64
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Debug|x64.Build.0 = Debug|x64
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Debug|x86.ActiveCfg = Debug|Win32
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Debug|x86.Build.0 = Debug|Win32
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Release|x64.ActiveCfg = Release|x64
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Release|x64.Build.0 = Release|x64
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Release|x86.ActiveCfg = Release|Win32
+		{B742E11C-75E4-455E-9D69-48CB61AECAFF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7A2FA69A-9AB5-4ED3-BC80-B7C7F7AF0C42}
 	EndGlobalSection
 EndGlobal

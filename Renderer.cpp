@@ -281,15 +281,15 @@ void Renderer::LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel
 
 	mTextures[texture->Name] = std::move(texture);
 
-	auto bricks0 = std::make_unique<Material>();
-	bricks0->Name = name;
-	bricks0->MatCBIndex = mMaterials.size();
-	bricks0->DiffuseSrvHeapIndex = mMaterials.size();
-	bricks0->DiffuseAlbedo = albedo;
-	bricks0->FresnelR0 = fersnel;
-	bricks0->Roughness = rough;
+	auto mat = std::make_unique<Material>();
+	mat->Name = name;
+	mat->MatCBIndex = mMaterials.size();
+	mat->DiffuseSrvHeapIndex = mMaterials.size();
+	mat->DiffuseAlbedo = albedo;
+	mat->FresnelR0 = fersnel;
+	mat->Roughness = rough;
 
-	mMaterials[name] = std::move(bricks0);
+	mMaterials[name] = std::move(mat);
 }
 
 
