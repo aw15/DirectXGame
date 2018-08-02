@@ -544,48 +544,117 @@ void Renderer::BuildShapeGeometry()
 
 
 
-void Renderer::LoadOBJModel(const char * path, std::string name)
+
+void Renderer::LoadModel(const char * path, std::string name)
 {
+	auto geo = std::make_unique<MeshGeometry>();
+	geo->Name = name;
+	mGeometries[name] = std::move(geo);
+
+	std::ifstream in(path);
+	auto data = in.is_open();
+	if (!in.is_open())
+	{
+		return;
+	}
 
 	GeometryGenerator::MeshData model;
 	SubmeshGeometry subData;
 
-	
+
 	std::vector<Vertex> vertices;
-	std::vector<uint16_t> index;
+	std::vector<uint16_t> indicies;
 
 
-	
-	subData.BaseVertexLocation = 0;
-	subData.IndexCount = index.size();
-	subData.StartIndexLocation = 0;
+	std::string text;
+	int vertexSize = 0;
+	in >> vertexSize;
+	vertices.resize(vertexSize);
+
+	while (!in.eof())
+	{
+		in >> text;
+		if (text == "POSITION")
+		{
+			for (int i = 0; i < vertexSize; ++i)
+			{
+				float x, y, z;
+				in >> x >> y >> z;
+				vertices[i].Pos.x = x;
+				vertices[i].Pos.y = y;
+				vertices[i].Pos.z = z;
+				//printf("%f %f %f\n", x, y, z);
+			}
+		}
+		if (text == "UV")
+		{
+			for (int i = 0; i < vertexSize; ++i)
+			{
+				float u, v;
+				in >> u >> v;
+				vertices[i].TexC.x = u;
+				vertices[i].TexC.y = v;
+				//printf("%f %f\n", u, v);
+			}
+		}
+		if (text == "NORMAL")
+		{
+			for (int i = 0; i < vertexSize; ++i)
+			{
+				float x, y, z;
+				in >> x >> y >> z;
+				vertices[i].Normal.x = x;
+				vertices[i].Normal.y = y;
+				vertices[i].Normal.z = z;
+				//printf("%f %f %f\n", x, y, z);
+			}
+		}
+		if (text == "INDEX")
+		{
+			int indexSize;
+			in >> indexSize;
+			for (int i = 0; i < indexSize; ++i)
+			{
+				int index;
+				in >> index;
+				indicies.push_back(index);
+				//printf("%d ", index);
+			}
+		}
+	}
+
+	in.close();
+
+
+	subData.BaseVertexLocation = mGeometries[name]->TotalVertexCount;
+	subData.IndexCount = indicies.size();
+	subData.StartIndexLocation = mGeometries[name]->TotalIndexCount;
 	BoundingBox::CreateFromPoints(subData.Bounds, vertices.size(), &vertices[0].Pos, sizeof(Vertex));
 
+
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
-	const UINT ibByteSize = (UINT)index.size() * sizeof(std::uint16_t);
+	const UINT ibByteSize = (UINT)indicies.size() * sizeof(std::uint16_t);
 
-	auto geo = std::make_unique<MeshGeometry>();
-	geo->Name = name;
-	ThrowIfFailed(D3DCreateBlob(vbByteSize, &geo->VertexBufferCPU));
-	CopyMemory(geo->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 
-	ThrowIfFailed(D3DCreateBlob(ibByteSize, &geo->IndexBufferCPU));
-	CopyMemory(geo->IndexBufferCPU->GetBufferPointer(), index.data(), ibByteSize);
 
-	geo->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
-		mCommandList.Get(), vertices.data(), vbByteSize, geo->VertexBufferUploader);
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &mGeometries[name]->VertexBufferCPU));
+	CopyMemory(mGeometries[name]->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
 
-	geo->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
-		mCommandList.Get(), index.data(), ibByteSize, geo->IndexBufferUploader);
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &mGeometries[name]->IndexBufferCPU));
+	CopyMemory(mGeometries[name]->IndexBufferCPU->GetBufferPointer(), indicies.data(), ibByteSize);
 
-	geo->VertexByteStride = sizeof(Vertex);
-	geo->VertexBufferByteSize = vbByteSize;
-	geo->IndexFormat = DXGI_FORMAT_R16_UINT;
-	geo->IndexBufferByteSize = ibByteSize;
+	mGeometries[name]->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
+		mCommandList.Get(), vertices.data(), vbByteSize, mGeometries[name]->VertexBufferUploader);
 
-	geo->DrawArgs[name] = subData;
-	
-	mGeometries[geo->Name] = std::move(geo);
+	mGeometries[name]->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
+		mCommandList.Get(), indicies.data(), ibByteSize, mGeometries[name]->IndexBufferUploader);
+
+	mGeometries[name]->VertexByteStride = sizeof(Vertex);
+	mGeometries[name]->VertexBufferByteSize = vbByteSize;
+	mGeometries[name]->IndexFormat = DXGI_FORMAT_R16_UINT;
+	mGeometries[name]->IndexBufferByteSize = ibByteSize;
+
+	mGeometries[name]->DrawArgs[name] = subData;
 }
 
 void Renderer::BuildPSOs()

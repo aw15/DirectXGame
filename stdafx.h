@@ -58,3 +58,6 @@ enum SORT
 	boundary,
 	count
 };
+
+#define PLAYER_MODEL "player"
+#define PLAYER_MODEL2 "player2"

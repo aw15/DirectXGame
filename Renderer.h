@@ -30,7 +30,7 @@ protected:
 	void BuildShadersAndInputLayout();
 	void BuildShapeGeometry();
 
-	void LoadOBJModel(const char* path, std::string name);
+	void LoadModel(const char* path, std::string name);
 	void BuildPSOs();
 	void BuildFrameResources();
 	void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
@@ -59,7 +59,6 @@ protected:
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mTreeSpriteInputLayout;
 	// List of all the render items.
 	std::vector<std::unique_ptr<RenderItem>> mAllRitems;
-
 	// Render items divided by PSO.
 	std::vector<RenderItem*> mObjectLayer[SORT::count];
 

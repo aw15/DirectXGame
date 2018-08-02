@@ -161,6 +161,8 @@ struct MeshGeometry
 	DXGI_FORMAT IndexFormat = DXGI_FORMAT_R16_UINT;
 	UINT IndexBufferByteSize = 0;
 
+	UINT TotalVertexCount=0;
+	UINT TotalIndexCount =0;
 	// 이 구조체는 인스턴스의 한 정점/색인 버퍼에 여러개의 기하구조를 담을 수 있다.
 	//부분 메시들을 개별적으로 그릴 수 있도록 부분 메시 기하구조들을 컨테이너에 담아둔다.
 	std::unordered_map<std::string, SubmeshGeometry> DrawArgs;

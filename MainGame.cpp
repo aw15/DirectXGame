@@ -29,12 +29,15 @@ MainGame::~MainGame()
 	LoadTexture(L"Textures/noise01.dds", "fireNoise");
 	LoadTexture(L"Textures/alpha01.dds", "fireAlpha");
 	LoadTexture(L"Textures/fire01.dds", "fire");
-	////////////////////////////////////////////////////
+	LoadTexture(L"Textures/robot.dds", "robot");
+	/////////////////////////////////////////////////////////
 	BuildRootSignature();
 	BuildDescriptorHeaps();
 	BuildShadersAndInputLayout();
 	BuildPSOs();
 	///////////////////오브젝트 생성//////////////////////
+	LoadModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL);
+	LoadModel("ModelLoader/ModelLoader/Model/robot.model", PLAYER_MODEL2);
 	BuildShapeGeometry();
 	BuildMap();
 	BuildFrameResources();
@@ -49,7 +52,7 @@ MainGame::~MainGame()
 
 	return true;
 }
-
+#pragma endregion
 void MainGame::BuildMap()
 {
 	for (int i = 0; i < 12; ++i)
@@ -67,7 +70,7 @@ void MainGame::BuildMap()
 		}
 	}
 
-	CreateObject(SORT::player);
+	CreateObject(SORT::player,"robot");
 
 }
 
@@ -196,37 +199,38 @@ void MainGame::CreateObject(const SORT category, const char* materialName , cons
 {
 	if (category == SORT::player)
 	{
+		auto player1 = std::make_unique<Player>();
+		XMStoreFloat4x4(&player1->World, XMMatrixScaling(0.01f, 0.01f, 0.01f)*XMMatrixRotationX(0.5*XM_PI)*XMMatrixTranslation(5.0f, 0.0f, 15.5f));
+		XMStoreFloat4x4(&player1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
+		player1->ObjCBIndex = mObjectConstantCount++;
+		player1->Mat = mMaterials[materialName].get();
+		player1->Geo = mGeometries[PLAYER_MODEL].get();
+		player1->mTag = PLAYER;
+		player1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		player1->IndexCount = player1->Geo->DrawArgs[PLAYER_MODEL].IndexCount;
+		player1->StartIndexLocation = player1->Geo->DrawArgs[PLAYER_MODEL].StartIndexLocation;
+		player1->BaseVertexLocation = player1->Geo->DrawArgs[PLAYER_MODEL].BaseVertexLocation;
+		player1->mStandardBox = &(player1->Geo->DrawArgs[PLAYER_MODEL].Bounds);
+		mPlayer[PLAYER1] = player1.get();
+		mAllRitems.push_back(std::move(player1));
+		mObjectLayer[category].push_back(mAllRitems.back().get());
+
 		auto player2 = std::make_unique<Player>();
-		XMStoreFloat4x4(&player2->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(15.5f, 0.0f, 5.0f));
+		XMStoreFloat4x4(&player2->World, XMMatrixScaling(0.01f, 0.01f, 0.01f)*XMMatrixRotationX(0.5*XM_PI)*XMMatrixTranslation(15.5f, 0.0f, 5.0f));
 		XMStoreFloat4x4(&player2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 		player2->ObjCBIndex = mObjectConstantCount++;
 		player2->Mat = mMaterials[materialName].get();
-		player2->Geo = mGeometries["shapeGeo"].get();
+		player2->Geo = mGeometries[PLAYER_MODEL2].get();
 		player2->mTag = PLAYER;
 		player2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		player2->IndexCount = player2->Geo->DrawArgs["cylinder"].IndexCount;
-		player2->StartIndexLocation = player2->Geo->DrawArgs["cylinder"].StartIndexLocation;
-		player2->BaseVertexLocation = player2->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-		player2->mStandardBox = &(player2->Geo->DrawArgs["cylinder"].Bounds);
+		player2->IndexCount = player2->Geo->DrawArgs[PLAYER_MODEL2].IndexCount;
+		player2->StartIndexLocation = player2->Geo->DrawArgs[PLAYER_MODEL2].StartIndexLocation;
+		player2->BaseVertexLocation = player2->Geo->DrawArgs[PLAYER_MODEL2].BaseVertexLocation;
+		player2->mStandardBox = &(player2->Geo->DrawArgs[PLAYER_MODEL2].Bounds);
 		mPlayer[PLAYER2] = player2.get();
 		mAllRitems.push_back(std::move(player2));
 		mObjectLayer[category].push_back(mAllRitems.back().get());
 
-		auto player1 = std::make_unique<Player>();
-		XMStoreFloat4x4(&player1->World, XMMatrixScaling(1.0f, 1.0f, 1.0f)*XMMatrixTranslation(5.0f, 0.0f, 15.5f));
-		XMStoreFloat4x4(&player1->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
-		player1->ObjCBIndex = mObjectConstantCount++;
-		player1->Mat = mMaterials[materialName].get();
-		player1->Geo = mGeometries["shapeGeo"].get();
-		player1->mTag = PLAYER;
-		player1->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		player1->IndexCount = player1->Geo->DrawArgs["cylinder"].IndexCount;
-		player1->StartIndexLocation = player1->Geo->DrawArgs["cylinder"].StartIndexLocation;
-		player1->BaseVertexLocation = player1->Geo->DrawArgs["cylinder"].BaseVertexLocation;
-		player1->mStandardBox = &(player1->Geo->DrawArgs["cylinder"].Bounds);
-		mPlayer[PLAYER1] = player1.get();
-		mAllRitems.push_back(std::move(player1));
-		mObjectLayer[category].push_back(mAllRitems.back().get());
 	}
 	else if (category == SORT::bomb)
 	{
