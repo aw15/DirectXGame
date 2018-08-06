@@ -21,11 +21,11 @@
     <ClInclude Include="targetver.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="WICTextureLoader12.h">
-      <Filter>소스 파일</Filter>
-    </ClInclude>
     <ClInclude Include="d3dx12.h">
       <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedData.h">
+      <Filter>소스 파일</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -35,7 +35,7 @@
     <ClCompile Include="ModelLoader.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="WICTextureLoader12.cpp">
+    <ClCompile Include="SkinnedData.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>

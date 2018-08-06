@@ -29,7 +29,6 @@ MainGame::~MainGame()
 	LoadTexture(L"Textures/noise01.dds", "fireNoise");
 	LoadTexture(L"Textures/alpha01.dds", "fireAlpha");
 	LoadTexture(L"Textures/fire01.dds", "fire");
-	LoadTexture(L"Textures/robot.dds", "robot");
 	/////////////////////////////////////////////////////////
 	BuildRootSignature();
 	BuildDescriptorHeaps();
@@ -37,7 +36,7 @@ MainGame::~MainGame()
 	BuildPSOs();
 	///////////////////오브젝트 생성//////////////////////
 	LoadModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL);
-	LoadModel("ModelLoader/ModelLoader/Model/robot.model", PLAYER_MODEL2);
+	LoadModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL2);
 	BuildShapeGeometry();
 	BuildMap();
 	BuildFrameResources();
@@ -70,7 +69,7 @@ void MainGame::BuildMap()
 		}
 	}
 
-	CreateObject(SORT::player,"robot");
+	CreateObject(SORT::player);
 
 }
 
