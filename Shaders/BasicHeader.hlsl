@@ -47,6 +47,11 @@ cbuffer cbPerObject : register(b0)
     uint gObjPad2;
 };
 
+cbuffer cbSkinned : register(b2)
+{
+    float4x4 gBoneTransforms[96];
+};
+
 struct InstanceData
 {
     float4x4 gWorld;

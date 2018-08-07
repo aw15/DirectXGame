@@ -104,12 +104,12 @@ void Renderer::Draw(const GameTimer& gt)
 	// Bind all the materials used in this scene.  For structured buffers, we can bypass the heap and 
 	// set as a root descriptor.
 	auto matBuffer = mCurrFrameResource->MaterialBuffer->Resource();
-	mCommandList->SetGraphicsRootShaderResourceView(2, matBuffer->GetGPUVirtualAddress());
+	mCommandList->SetGraphicsRootShaderResourceView(3, matBuffer->GetGPUVirtualAddress());
 
 	// Bind all the textures used in this scene.  Observe
     // that we only have to specify the first descriptor in the table.  
     // The root signature knows how many descriptors are expected in the table.
-	mCommandList->SetGraphicsRootDescriptorTable(3, mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
+	mCommandList->SetGraphicsRootDescriptorTable(4, mSrvDescriptorHeap->GetGPUDescriptorHandleForHeapStart());
 
 
     DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::box]);
@@ -297,7 +297,7 @@ void Renderer::LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel
 void Renderer::BuildRootSignature()
 {
 	CD3DX12_DESCRIPTOR_RANGE texTable;
-	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV,MAX_TEXTURE, 0, 0);
+	texTable.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, MAX_TEXTURE, 0, 0);
 
 	
     // Root parameter can be a table, root descriptor or root constants.
@@ -306,8 +306,10 @@ void Renderer::BuildRootSignature()
 	// Perfomance TIP: Order from most frequent to least frequent.
     slotRootParameter[0].InitAsConstantBufferView(0);
     slotRootParameter[1].InitAsConstantBufferView(1);
-    slotRootParameter[2].InitAsShaderResourceView(0, 1);
-	slotRootParameter[3].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+	slotRootParameter[2].InitAsConstantBufferView(2);
+    slotRootParameter[3].InitAsShaderResourceView(0, 1);
+	slotRootParameter[4].InitAsDescriptorTable(1, &texTable, D3D12_SHADER_VISIBILITY_PIXEL);
+	
 
 	auto staticSamplers = GetStaticSamplers();
 
@@ -387,7 +389,9 @@ void Renderer::BuildShadersAndInputLayout()
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "WEIGHT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BONEINDEX", 0, DXGI_FORMAT_R16G16B16A16_UINT, 0, 48, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
 }
@@ -567,46 +571,38 @@ void Renderer::LoadModel(const char * path, std::string name)
 
 
 	std::string text;
+	std::string ignore;
+
 	int vertexSize = 0;
 	in >> vertexSize;
 	vertices.resize(vertexSize);
 
+	float x, y, z;
+
 	while (!in.eof())
 	{
 		in >> text;
-		if (text == "POSITION")
+		if (text == "VERTEXDATA")
 		{
 			for (int i = 0; i < vertexSize; ++i)
 			{
-				float x, y, z;
+
 				in >> x >> y >> z;
 				vertices[i].Pos.x = x;
 				vertices[i].Pos.y = y;
 				vertices[i].Pos.z = z;
-				//printf("%f %f %f\n", x, y, z);
-			}
-		}
-		if (text == "UV")
-		{
-			for (int i = 0; i < vertexSize; ++i)
-			{
-				float u, v;
-				in >> u >> v;
-				vertices[i].TexC.x = u;
-				vertices[i].TexC.y = v;
-				//printf("%f %f\n", u, v);
-			}
-		}
-		if (text == "NORMAL")
-		{
-			for (int i = 0; i < vertexSize; ++i)
-			{
-				float x, y, z;
+
+
+				in >> x >> y;
+				vertices[i].TexC.x = x;
+				vertices[i].TexC.y = y;
+
 				in >> x >> y >> z;
 				vertices[i].Normal.x = x;
 				vertices[i].Normal.y = y;
 				vertices[i].Normal.z = z;
-				//printf("%f %f %f\n", x, y, z);
+
+				in >> ignore;
 			}
 		}
 		if (text == "INDEX")
@@ -618,7 +614,6 @@ void Renderer::LoadModel(const char * path, std::string name)
 				int index;
 				in >> index;
 				indicies.push_back(index);
-				//printf("%d ", index);
 			}
 		}
 	}
