@@ -63,6 +63,11 @@ struct Vertex
 	XMUINT4 boneIndex;
 };
 
+struct SkinnedConstants
+{
+	DirectX::XMFLOAT4X4 BoneTransforms[96];
+};
+
 // Stores the resources needed for the CPU to build the command lists
 // for a frame.  
 struct FrameResource
@@ -82,7 +87,7 @@ public:
     // that reference it.  So each frame needs their own cbuffers.
     std::unique_ptr<UploadBuffer<PassConstants>> PassCB = nullptr;
     std::unique_ptr<UploadBuffer<ObjectConstants>> ObjectCB = nullptr;
-
+	std::unique_ptr<UploadBuffer<SkinnedConstants>> SkinnedCB = nullptr;
 	std::unique_ptr<UploadBuffer<MaterialData>> MaterialBuffer = nullptr;
 
     // Fence value to mark commands up to this fence point.  This lets us

@@ -269,6 +269,22 @@ void Renderer::UpdateMainPassCB(const GameTimer& gt)
 	currPassCB->CopyData(0, mMainPassCB);
 }
 
+void Renderer::UpdateSkinnedCBs(const GameTimer & gt)
+{
+	auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();
+
+	// We only have one skinned model being animated.
+	mSkinnedModelInst->UpdateSkinnedAnimation(gt.DeltaTime());
+
+	SkinnedConstants skinnedConstants;
+	std::copy(
+		std::begin(mSkinnedModelInst->FinalTransforms),
+		std::end(mSkinnedModelInst->FinalTransforms),
+		&skinnedConstants.BoneTransforms[0]);
+
+	currSkinnedCB->CopyData(0, skinnedConstants);
+}
+
 
 void Renderer::LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel, XMFLOAT4 albedo, float rough)
 {
@@ -620,6 +636,118 @@ void Renderer::LoadModel(const char * path, std::string name)
 
 	in.close();
 
+
+	subData.BaseVertexLocation = mGeometries[name]->TotalVertexCount;
+	subData.IndexCount = indicies.size();
+	subData.StartIndexLocation = mGeometries[name]->TotalIndexCount;
+	BoundingBox::CreateFromPoints(subData.Bounds, vertices.size(), &vertices[0].Pos, sizeof(Vertex));
+
+
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)indicies.size() * sizeof(std::uint16_t);
+
+
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &mGeometries[name]->VertexBufferCPU));
+	CopyMemory(mGeometries[name]->VertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize, &mGeometries[name]->IndexBufferCPU));
+	CopyMemory(mGeometries[name]->IndexBufferCPU->GetBufferPointer(), indicies.data(), ibByteSize);
+
+	mGeometries[name]->VertexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
+		mCommandList.Get(), vertices.data(), vbByteSize, mGeometries[name]->VertexBufferUploader);
+
+	mGeometries[name]->IndexBufferGPU = d3dUtil::CreateDefaultBuffer(md3dDevice.Get(),
+		mCommandList.Get(), indicies.data(), ibByteSize, mGeometries[name]->IndexBufferUploader);
+
+	mGeometries[name]->VertexByteStride = sizeof(Vertex);
+	mGeometries[name]->VertexBufferByteSize = vbByteSize;
+	mGeometries[name]->IndexFormat = DXGI_FORMAT_R16_UINT;
+	mGeometries[name]->IndexBufferByteSize = ibByteSize;
+
+	mGeometries[name]->DrawArgs[name] = subData;
+}
+
+void Renderer::LoadAnimationModel(const char * path, std::string name)
+{
+
+
+
+	auto geo = std::make_unique<MeshGeometry>();
+	geo->Name = name;
+	mGeometries[name] = std::move(geo);
+
+	std::ifstream in(path);
+	auto data = in.is_open();
+	if (!in.is_open())
+	{
+		return;
+	}
+
+	GeometryGenerator::MeshData model;
+	SubmeshGeometry subData;
+
+
+	std::vector<Vertex> vertices;
+	std::vector<uint16_t> indicies;
+
+
+	std::string text;
+	std::string ignore;
+
+	int vertexSize = 0;
+	in >> vertexSize;
+	vertices.resize(vertexSize);
+
+	float x, y, z;
+
+	while (!in.eof())
+	{
+		in >> text;
+		if (text == "VERTEXDATA")
+		{
+			for (int i = 0; i < vertexSize; ++i)
+			{
+
+				in >> x >> y >> z;
+				vertices[i].Pos.x = x;
+				vertices[i].Pos.y = y;
+				vertices[i].Pos.z = z;
+
+
+				in >> x >> y;
+				vertices[i].TexC.x = x;
+				vertices[i].TexC.y = y;
+
+				in >> x >> y >> z;
+				vertices[i].Normal.x = x;
+				vertices[i].Normal.y = y;
+				vertices[i].Normal.z = z;
+
+				in >> ignore;
+			}
+		}
+		if (text == "INDEX")
+		{
+			int indexSize;
+			in >> indexSize;
+			for (int i = 0; i < indexSize; ++i)
+			{
+				int index;
+				in >> index;
+				indicies.push_back(index);
+			}
+		}
+	}
+
+	in.close();
+
+
+	mSkinnedModelInst = std::make_unique<SkinnedModelInstance>();
+	mSkinnedModelInst->SkinnedInfo = &mSkinnedInfo;
+	mSkinnedModelInst->FinalTransforms.resize(mSkinnedInfo.BoneCount());
+	mSkinnedModelInst->ClipName = "Take1";
+	mSkinnedModelInst->TimePos = 0.0f;
 
 	subData.BaseVertexLocation = mGeometries[name]->TotalVertexCount;
 	subData.IndexCount = indicies.size();

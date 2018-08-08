@@ -1,5 +1,30 @@
 #pragma once
 #include"Object.h"
+#include "Common/SkinnedData.h"
+
+struct SkinnedModelInstance
+{
+	SkinnedData* SkinnedInfo = nullptr;
+	std::vector<DirectX::XMFLOAT4X4> FinalTransforms;
+	std::string ClipName;
+	float TimePos = 0.0f;
+
+	// Called every frame and increments the time position, interpolates the 
+	// animations for each bone based on the current animation clip, and 
+	// generates the final transforms which are ultimately set to the effect
+	// for processing in the vertex shader.
+	void UpdateSkinnedAnimation(float dt)
+	{
+		TimePos += dt;
+
+		// Loop animation
+		if (TimePos > SkinnedInfo->GetClipEndTime(ClipName))
+			TimePos = 0.0f;
+
+		// Compute the final transforms for this time position.
+		SkinnedInfo->GetFinalTransforms(ClipName, TimePos, FinalTransforms);
+	}
+};
 
 class Renderer : public D3DApp
 {
@@ -23,6 +48,7 @@ protected:
 	void UpdateObjectCBs(const GameTimer& gt);
 	void UpdateMaterialBuffer(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
+	void UpdateSkinnedCBs(const GameTimer& gt);
 
 	void LoadTexture(std::wstring path, std::string name, XMFLOAT3 fersnel = { 0.05f, 0.05f, 0.05f }, XMFLOAT4 albedo = { 1.0f, 1.0f, 1.0f, 1.0f }, float rough = 0.0f);
 	void BuildRootSignature();
@@ -31,6 +57,7 @@ protected:
 	void BuildShapeGeometry();
 
 	void LoadModel(const char* path, std::string name);
+	void LoadAnimationModel(const char* path, std::string name);
 	void BuildPSOs();
 	void BuildFrameResources();
 	void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<RenderItem*>& ritems);
@@ -62,7 +89,8 @@ protected:
 	// Render items divided by PSO.
 	std::vector<RenderItem*> mObjectLayer[SORT::count];
 
-
+	std::unique_ptr<SkinnedModelInstance> mSkinnedModelInst;
+	SkinnedData mSkinnedInfo;
 
 	PassConstants mMainPassCB;
 
