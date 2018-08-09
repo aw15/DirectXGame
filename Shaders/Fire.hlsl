@@ -8,8 +8,6 @@ struct VertexInputType
     float4 position : POSITION;
     float2 tex : TEXCOORD0;
     float3 Normal : NORMAL;
-    float3 weights : WEIGHT;
-    uint4 boneIndices : BONEINDEX;
 };
 
 struct PixelInputType

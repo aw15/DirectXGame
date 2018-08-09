@@ -63,8 +63,9 @@ void Renderer::Update(const GameTimer& gt)
 
 	AnimateMaterials(gt);
 	UpdateObjectCBs(gt);
-	UpdateMaterialBuffer(gt);
+	UpdateMaterialBuffer(gt);   
 	UpdateMainPassCB(gt);
+	UpdateSkinnedCBs(gt);
 }
 
 void Renderer::Draw(const GameTimer& gt)
@@ -113,9 +114,11 @@ void Renderer::Draw(const GameTimer& gt)
 
 
     DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::box]);
-	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::player]);
 	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::bomb]);
 	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::boundary]);
+	//애니메이션 객체 그리기
+	mCommandList->SetPipelineState(mPSOs["animation"].Get());
+	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::player]);
 	//불그리기
 	mCommandList->SetPipelineState(mPSOs["fire"].Get());
 	DrawRenderItems(mCommandList.Get(), mObjectLayer[SORT::fire]);
@@ -395,8 +398,16 @@ void Renderer::BuildShadersAndInputLayout()
 		NULL, NULL
 	};
 
+	const D3D_SHADER_MACRO skinnedDefines[] =
+	{
+		"SKINNED", "1",
+		NULL, NULL
+	};
+
 	mShaders["standardVS"] = d3dUtil::CompileShader(L"Shaders/Default.hlsl", nullptr, "VS", "vs_5_1");
-	mShaders["opaquePS"] = d3dUtil::CompileShader(L"Shaders/Default.hlsl", nullptr, "PS", "ps_5_1");
+	mShaders["animationVS"] = d3dUtil::CompileShader(L"Shaders/Default.hlsl", skinnedDefines, "VS", "vs_5_1");
+
+	mShaders["standardPS"] = d3dUtil::CompileShader(L"Shaders/Default.hlsl", nullptr, "PS", "ps_5_1");
 	
 	mShaders["fireVS"] = d3dUtil::CompileShader(L"Shaders/Fire.hlsl", nullptr, "FireVertexShader", "vs_5_1");
 	mShaders["firePS"] = d3dUtil::CompileShader(L"Shaders/Fire.hlsl", nullptr, "FirePixelShader", "ps_5_1");
@@ -405,10 +416,16 @@ void Renderer::BuildShadersAndInputLayout()
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "WEIGHT", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 36, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "BONEINDEX", 0, DXGI_FORMAT_R16G16B16A16_UINT, 0, 48, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
+	mAnimationInputLayout = 
+	{
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 32, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BONEINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, 44, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+	};
 
 }
 
@@ -594,7 +611,7 @@ void Renderer::LoadModel(const char * path, std::string name)
 	vertices.resize(vertexSize);
 
 	float x, y, z;
-
+	int a, b, c, d;
 	while (!in.eof())
 	{
 		in >> text;
@@ -699,7 +716,12 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 	in >> vertexSize;
 	vertices.resize(vertexSize);
 
+	std::vector<XMFLOAT4X4> boneOffsets;
+	std::vector<int> boneIndexToParentIndex;
+	std::unordered_map<std::string, AnimationClip> animations;
 	float x, y, z;
+	int a, b, c, d;
+	int numBone=0;
 
 	while (!in.eof())
 	{
@@ -724,6 +746,17 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 				vertices[i].Normal.y = y;
 				vertices[i].Normal.z = z;
 
+				in >> x >> y >> z;
+				vertices[i].weights.x = x;
+				vertices[i].weights.y = y;
+				vertices[i].weights.z = z;
+
+				in >> a >> b >> c >> d;
+				vertices[i].boneIndex.x = a;
+				vertices[i].boneIndex.y = b;
+				vertices[i].boneIndex.z = c;
+				vertices[i].boneIndex.w = d;
+
 				in >> ignore;
 			}
 		}
@@ -738,11 +771,93 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 				indicies.push_back(index);
 			}
 		}
+		if (text == "BONETREE")
+		{
+			in >> numBone;
+			boneOffsets.resize(numBone);
+			boneIndexToParentIndex.resize(numBone);
+			std::string name;
+			int index,parentIndex;
+			for (int i = 0; i < numBone; i++)
+			{
+				in >> name;
+				in >> index >> parentIndex;
+				boneIndexToParentIndex[i] = parentIndex;
+				in>>
+					boneOffsets[i](0, 0) >> boneOffsets[i](0, 1) >> boneOffsets[i](0, 2) >> boneOffsets[i](0, 3) >>
+					boneOffsets[i](1, 0) >> boneOffsets[i](1, 1) >> boneOffsets[i](1, 2) >> boneOffsets[i](1, 3) >>
+					boneOffsets[i](2, 0) >> boneOffsets[i](2, 1) >> boneOffsets[i](2, 2) >> boneOffsets[i](2, 3) >>
+					boneOffsets[i](3, 0) >> boneOffsets[i](3, 1) >> boneOffsets[i](3, 2) >> boneOffsets[i](3, 3);
+				in >> ignore;
+			}
+		}
+		if (text == "ANIMATIONCLIP")
+		{
+			int clipSize = 0;
+			int frameSize = 0;
+			float time = 0;
+
+
+			in >> clipSize;
+			AnimationClip clip;
+			clip.BoneAnimations.resize(numBone);
+
+			for (int i = 0; i < clipSize; i++)
+			{
+				in >> ignore;
+				in >> ignore;
+				in>> frameSize;
+
+				XMFLOAT3 pos(0.0f, 0.0f, 0.0f);
+				XMFLOAT3 scale(1.0f, 1.0f, 1.0f);
+				XMFLOAT4 rot(0.0f, 0.0f, 0.0f, 1.0f);
+	
+
+
+				clip.BoneAnimations[i].Keyframes.resize(frameSize);
+				for (int j = 0; j < frameSize; j++)
+				{
+					in >> time;
+					in >> pos.x >> pos.y >> pos.z;
+					in >> rot.x >> rot.y >> rot.z >> rot.w;
+					in >> scale.x >> scale.y >> scale.z;
+
+					clip.BoneAnimations[i].Keyframes[j].TimePos = time;
+					clip.BoneAnimations[i].Keyframes[j].Translation = pos;
+					clip.BoneAnimations[i].Keyframes[j].RotationQuat = rot;
+					clip.BoneAnimations[i].Keyframes[j].Scale = scale;
+
+				}
+			}
+
+			for (int i = clipSize; i < numBone; i++)//뼈개수와 애니메이션개수가 다르면
+			{
+
+				XMFLOAT3 pos(0.0f, 0.0f, 0.0f);
+				XMFLOAT3 scale(1.0f, 1.0f, 1.0f);
+				XMFLOAT4 rot(0.0f, 0.0f, 0.0f, 1.0f);
+				clip.BoneAnimations[i].Keyframes.resize(frameSize);
+				for (int j = 0; j < frameSize; j++)
+				{
+					clip.BoneAnimations[i].Keyframes[j].TimePos = (j) / 15;
+					clip.BoneAnimations[i].Keyframes[j].Translation = pos;
+					clip.BoneAnimations[i].Keyframes[j].RotationQuat = rot;
+					clip.BoneAnimations[i].Keyframes[j].Scale = scale;
+				}
+			}
+
+			animations["Take1"] = clip;
+			while (!in.eof())
+			{
+				in >> text;
+				TEST(text);
+			}
+		}
 	}
 
 	in.close();
 
-
+	mSkinnedInfo.Set(boneIndexToParentIndex, boneOffsets, animations);
 	mSkinnedModelInst = std::make_unique<SkinnedModelInstance>();
 	mSkinnedModelInst->SkinnedInfo = &mSkinnedInfo;
 	mSkinnedModelInst->FinalTransforms.resize(mSkinnedInfo.BoneCount());
@@ -797,8 +912,8 @@ void Renderer::BuildPSOs()
 	};
 	opaquePsoDesc.PS = 
 	{ 
-		reinterpret_cast<BYTE*>(mShaders["opaquePS"]->GetBufferPointer()),
-		mShaders["opaquePS"]->GetBufferSize()
+		reinterpret_cast<BYTE*>(mShaders["standardPS"]->GetBufferPointer()),
+		mShaders["standardPS"]->GetBufferSize()
 	};
 	opaquePsoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	opaquePsoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
@@ -840,6 +955,16 @@ void Renderer::BuildPSOs()
 	firePsoDesc.BlendState.RenderTarget[0] = transparencyBlendDesc;
 
 	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&firePsoDesc, IID_PPV_ARGS(&mPSOs["fire"])));
+
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC animationPsoDesc = opaquePsoDesc;
+	animationPsoDesc.InputLayout = { mAnimationInputLayout.data(),(UINT)mAnimationInputLayout.size() };
+	animationPsoDesc.VS =
+	{
+		reinterpret_cast<BYTE*>(mShaders["animationVS"]->GetBufferPointer()),
+		mShaders["animationVS"]->GetBufferSize()
+	};
+	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&animationPsoDesc, IID_PPV_ARGS(&mPSOs["animation"])));
 }
 
 void Renderer::BuildFrameResources()

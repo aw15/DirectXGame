@@ -35,8 +35,8 @@ MainGame::~MainGame()
 	BuildShadersAndInputLayout();
 	BuildPSOs();
 	///////////////////오브젝트 생성//////////////////////
-	LoadModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL);
-	LoadModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL2);
+	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL);
+	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL2);
 	BuildShapeGeometry();
 	BuildMap();
 	BuildFrameResources();

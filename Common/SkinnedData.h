@@ -1,6 +1,5 @@
 #ifndef SKINNEDDATA_H
 #define SKINNEDDATA_H
-#include"Common/MathHelper.h"
 
 
 ///<summary>
