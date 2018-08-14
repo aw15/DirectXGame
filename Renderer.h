@@ -1,5 +1,6 @@
 #pragma once
 #include"Object.h"
+#include"Parser.h"
 #include "Common/SkinnedData.h"
 
 struct SkinnedModelInstance
@@ -97,9 +98,7 @@ protected:
 	Camera mCamera;
 
 	POINT mLastMousePos;
-
-	//int mTotalVertexCount = 0;
-	//int mTotalIndexCount = 0;
-	//std::vector<Vertex> mVertices;
-	//std::vector<std::uint16_t> mIndices;
+/////////////////////////////////////////////////////////////////////
+	vector<XMFLOAT4X4> boneTransform;
+	SkinnedMesh* mMesh;
 };

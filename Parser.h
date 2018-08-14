@@ -7,6 +7,8 @@
 
 using namespace std;
 
+
+
 class SkinnedMesh
 {
 public:
@@ -18,10 +20,24 @@ public:
 
 	void Render();
 
+	XMFLOAT4X4 convertXM(const aiMatrix4x4& data)
+	{
+		XMFLOAT4X4 ret;
+		ret._11 = data.a1;	ret._12 = data.a2;	ret._13 = data.a3;	ret._14 = data.a4;
+		ret._21 = data.b1;	ret._22 = data.b2;	ret._23 = data.b3;	ret._24 = data.b4;
+		ret._31 = data.c1;	ret._32 = data.c2;	ret._33 = data.c3;	ret._34 = data.c4;
+		ret._41 = data.d1;	ret._42 = data.d2;	ret._43 = data.d3;	ret._44 = data.d4;
+
+		return ret;
+	}
+
 	UINT NumBones() const
 	{
 		return m_NumBones;
 	}
+
+
+
 
 	void BoneTransform(float TimeInSeconds, vector<XMFLOAT4X4>& Transforms);
 
@@ -66,65 +82,24 @@ private:
 	UINT FindRotation(float AnimationTime, const aiNodeAnim* pNodeAnim);
 	UINT FindPosition(float AnimationTime, const aiNodeAnim* pNodeAnim);
 	const aiNodeAnim* FindNodeAnim(const aiAnimation* pAnimation, const string NodeName);
-	void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const XMFLOAT4X4& ParentTransform);
+	void ReadNodeHeirarchy(float AnimationTime, const aiNode* pNode, const XMMATRIX& ParentTransform);
 	bool InitFromScene(const aiScene* pScene, const string& Filename);
 	void InitMesh(UINT MeshIndex,
 		const aiMesh* paiMesh,
-		vector<XMFLOAT3>& Positions,
-		vector<XMFLOAT3>& Normals,
-		vector<XMFLOAT2>& TexCoords,
-		vector<VertexBoneData>& Bones,
-		vector<unsigned int>& Indices);
+		vector<VertexBoneData>& Bones);
 	void LoadBones(UINT MeshIndex, const aiMesh* paiMesh, vector<VertexBoneData>& Bones);
-	bool InitMaterials(const aiScene* pScene, const string& Filename);
-	void Clear();
 
-#define INVALID_MATERIAL 0xFFFFFFFF
 
-	enum VB_TYPES {
-		INDEX_BUFFER,
-		POS_VB,
-		NORMAL_VB,
-		TEXCOORD_VB,
-		BONE_VB,
-		NUM_VBs
-	};
-
-	UINT m_VAO;
-	UINT m_Buffers[NUM_VBs];
-
-	struct MeshEntry {
-		MeshEntry()
-		{
-			NumIndices = 0;
-			BaseVertex = 0;
-			BaseIndex = 0;
-			MaterialIndex = INVALID_MATERIAL;
-		}
-
-		unsigned int NumIndices;
-		unsigned int BaseVertex;
-		unsigned int BaseIndex;
-		unsigned int MaterialIndex;
-	};
-
-	vector<MeshEntry> m_Entries;
+	vector<VertexBoneData> Bones;
 	
 	std::map<string, UINT> m_BoneMapping; // maps a bone name to its index
-	UINT m_NumBones;
+	UINT m_NumBones = 0;
 	vector<BoneInfo> m_BoneInfo;
-	XMFLOAT4X4 m_GlobalInverseTransform;
+	XMMATRIX m_GlobalInverseTransform;
 
 	const aiScene* m_pScene;
 	Assimp::Importer m_Importer;
 };
 
 
-
-class Parser
-{
-public:
-	Parser();
-	~Parser();
-};
 

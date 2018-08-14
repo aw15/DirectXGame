@@ -17,22 +17,25 @@ Renderer::~Renderer()
 
 bool Renderer::Initialize()
 {
-    if(!D3DApp::Initialize())
-        return false;
+	if (!D3DApp::Initialize())
+		return false;
 
-    // Reset the command list to prep for initialization commands.
-    ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
+	// Reset the command list to prep for initialization commands.
+	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
-    // Get the increment size of a descriptor in this heap type.  This is hardware specific, 
+	// Get the increment size of a descriptor in this heap type.  This is hardware specific, 
 	// so we have to query this information.
-    mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	//mCamera.SetPosition(0.0f, 2.0f, -15.0f);
- 
+
 	//LoadTextures();
 
-
-
+	boneTransform.resize(96);
+	for (int i = 0; i < 96; i++)
+	{
+		boneTransform[i] = MathHelper::Identity4x4();
+	}
 
     return true;
 }
@@ -101,6 +104,9 @@ void Renderer::Draw(const GameTimer& gt)
 
 	auto passCB = mCurrFrameResource->PassCB->Resource();
 	mCommandList->SetGraphicsRootConstantBufferView(1, passCB->GetGPUVirtualAddress());
+	
+	auto skinCB = mCurrFrameResource->SkinnedCB->Resource();
+	mCommandList->SetGraphicsRootConstantBufferView(2, skinCB->GetGPUVirtualAddress());
 
 	// Bind all the materials used in this scene.  For structured buffers, we can bypass the heap and 
 	// set as a root descriptor.
@@ -198,6 +204,7 @@ void Renderer::UpdateObjectCBs(const GameTimer& gt)
 			XMMATRIX texTransform = XMLoadFloat4x4(&e->TexTransform);
 
 			ObjectConstants objConstants;
+			//world = world * XMLoadFloat4x4(&boneTransform[35]);
 			XMStoreFloat4x4(&objConstants.World, XMMatrixTranspose(world));
 			XMStoreFloat4x4(&objConstants.TexTransform, XMMatrixTranspose(texTransform));
 			objConstants.MaterialIndex = e->Mat->MatCBIndex;
@@ -276,13 +283,13 @@ void Renderer::UpdateSkinnedCBs(const GameTimer & gt)
 {
 	auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();
 
-	// We only have one skinned model being animated.
-	mSkinnedModelInst->UpdateSkinnedAnimation(gt.DeltaTime());
 
+	// We only have one skinned model being animated.
+	mMesh->BoneTransform(gt.TotalTime(), boneTransform);
 	SkinnedConstants skinnedConstants;
 	std::copy(
-		std::begin(mSkinnedModelInst->FinalTransforms),
-		std::end(mSkinnedModelInst->FinalTransforms),
+		std::begin(boneTransform),
+		std::end(boneTransform),
 		&skinnedConstants.BoneTransforms[0]);
 
 	currSkinnedCB->CopyData(0, skinnedConstants);
@@ -345,7 +352,7 @@ void Renderer::BuildRootSignature()
 
     if(errorBlob != nullptr)
     {
-        ::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+		::OutputDebugStringA((char*)errorBlob->GetBufferPointer());
     }
     ThrowIfFailed(hr);
 
@@ -687,9 +694,6 @@ void Renderer::LoadModel(const char * path, std::string name)
 
 void Renderer::LoadAnimationModel(const char * path, std::string name)
 {
-
-
-
 	auto geo = std::make_unique<MeshGeometry>();
 	geo->Name = name;
 	mGeometries[name] = std::move(geo);
@@ -771,6 +775,9 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 				indicies.push_back(index);
 			}
 		}
+	}
+	in.close();
+		/*
 		if (text == "BONETREE")
 		{
 			in >> numBone;
@@ -862,7 +869,7 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 	mSkinnedModelInst->SkinnedInfo = &mSkinnedInfo;
 	mSkinnedModelInst->FinalTransforms.resize(mSkinnedInfo.BoneCount());
 	mSkinnedModelInst->ClipName = "Take1";
-	mSkinnedModelInst->TimePos = 0.0f;
+	mSkinnedModelInst->TimePos = 0.0f;*/
 
 	subData.BaseVertexLocation = mGeometries[name]->TotalVertexCount;
 	subData.IndexCount = indicies.size();

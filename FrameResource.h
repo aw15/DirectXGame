@@ -66,6 +66,7 @@ struct Vertex
 struct SkinnedConstants
 {
 	DirectX::XMFLOAT4X4 BoneTransforms[96];
+	//XMFLOAT4 vec;
 };
 
 // Stores the resources needed for the CPU to build the command lists

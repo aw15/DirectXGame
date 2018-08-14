@@ -35,8 +35,10 @@ MainGame::~MainGame()
 	BuildShadersAndInputLayout();
 	BuildPSOs();
 	///////////////////오브젝트 생성//////////////////////
+	mMesh = new SkinnedMesh();
+	mMesh->LoadMesh("Walking.fbx");
 	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL);
-	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL2);
+//	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL2);
 	BuildShapeGeometry();
 	BuildMap();
 	BuildFrameResources();
@@ -54,23 +56,22 @@ MainGame::~MainGame()
 #pragma endregion
 void MainGame::BuildMap()
 {
-	for (int i = 0; i < 12; ++i)
-	{
-		for (int j = 0; j < 12; j++)
-		{
-			if (i == 0 || i == 11 || j == 0 || j == 11)
-			{
-				CreateObject(SORT::boundary, "default", { (i * 2.0f),0, (j* 2.0f) }, { 2.0f,2.0f,2.0f });
-			}
-			else if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
-			{
-				CreateObject(SORT::box, "crate" ,{ (i * 2.0f),0, (j* 2.0f) }, { 2.0f,2.0f,2.0f });
-			}
-		}
-	}
+	//for (int i = 0; i < 12; ++i)
+	//{
+	//	for (int j = 0; j < 12; j++)
+	//	{
+	//		if (i == 0 || i == 11 || j == 0 || j == 11)
+	//		{
+	//			CreateObject(SORT::boundary, "default", { (i * 2.0f),0, (j* 2.0f) }, { 2.0f,2.0f,2.0f });
+	//		}
+	//		else if (((i != 2 && i!=3) || (j != 8 && j!=7)) && ((i != 8 && i != 7) || (j != 2 && j != 3)))
+	//		{
+	//			CreateObject(SORT::box, "crate" ,{ (i * 2.0f),0, (j* 2.0f) }, { 2.0f,2.0f,2.0f });
+	//		}
+	//	}
+	//}
 
 	CreateObject(SORT::player);
-
 }
 
 void MainGame::OnKeyboardInput(const GameTimer & gt)
@@ -219,13 +220,13 @@ void MainGame::CreateObject(const SORT category, const char* materialName , cons
 		XMStoreFloat4x4(&player2->TexTransform, XMMatrixScaling(1.0f, 1.0f, 1.0f));
 		player2->ObjCBIndex = mObjectConstantCount++;
 		player2->Mat = mMaterials[materialName].get();
-		player2->Geo = mGeometries[PLAYER_MODEL2].get();
+		player2->Geo = mGeometries[PLAYER_MODEL].get();
 		player2->mTag = PLAYER;
 		player2->PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		player2->IndexCount = player2->Geo->DrawArgs[PLAYER_MODEL2].IndexCount;
-		player2->StartIndexLocation = player2->Geo->DrawArgs[PLAYER_MODEL2].StartIndexLocation;
-		player2->BaseVertexLocation = player2->Geo->DrawArgs[PLAYER_MODEL2].BaseVertexLocation;
-		player2->mStandardBox = &(player2->Geo->DrawArgs[PLAYER_MODEL2].Bounds);
+		player2->IndexCount = player2->Geo->DrawArgs[PLAYER_MODEL].IndexCount;
+		player2->StartIndexLocation = player2->Geo->DrawArgs[PLAYER_MODEL].StartIndexLocation;
+		player2->BaseVertexLocation = player2->Geo->DrawArgs[PLAYER_MODEL].BaseVertexLocation;
+		player2->mStandardBox = &(player2->Geo->DrawArgs[PLAYER_MODEL].Bounds);
 		mPlayer[PLAYER2] = player2.get();
 		mAllRitems.push_back(std::move(player2));
 		mObjectLayer[category].push_back(mAllRitems.back().get());
