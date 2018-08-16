@@ -43,85 +43,134 @@ void FillPoseArray(FbxScene* pScene, FbxArray<FbxPose*>& pPoseArray)
 		pPoseArray.Add(pScene->GetPose(i));
 	}
 }
-
-// Get the matrix of the given pose
-FbxAMatrix GetPoseMatrix(FbxPose* pPose, int pNodeIndex)
+void ReadNormal(FbxMesh* inMesh, int inCtrlPointIndex, int inVertexCounter, XMFLOAT3& outNormal)
 {
-	FbxAMatrix lPoseMatrix;
-	FbxMatrix lMatrix = pPose->GetMatrix(pNodeIndex);
-
-	memcpy((double*)lPoseMatrix, (double*)lMatrix, sizeof(lMatrix.mData));
-
-	return lPoseMatrix;
-}
-// Get the global position of the node for the current pose.
-// If the specified node is not part of the pose or no pose is specified, get its
-// global position at the current time.
-FbxAMatrix GetGlobalPosition(FbxNode* pNode, const FbxTime& pTime, FbxPose* pPose = NULL, FbxAMatrix* pParentGlobalPosition = NULL)
-{
-	FbxAMatrix lGlobalPosition;
-	bool        lPositionFound = false;
-
-	if (pPose)
+	if (inMesh->GetElementNormalCount() < 1)
 	{
-		int lNodeIndex = pPose->Find(pNode);
+		throw std::exception("Invalid Normal Number");
+	}
 
-		if (lNodeIndex > -1)
+	FbxGeometryElementNormal* vertexNormal = inMesh->GetElementNormal(0);
+	switch (vertexNormal->GetMappingMode())
+	{
+	case FbxGeometryElement::eByControlPoint:
+		switch (vertexNormal->GetReferenceMode())
 		{
-			// The bind pose is always a global matrix.
-			// If we have a rest pose, we need to check if it is
-			// stored in global or local space.
-			if (pPose->IsBindPose() || !pPose->IsLocalMatrix(lNodeIndex))
-			{
-				lGlobalPosition = GetPoseMatrix(pPose, lNodeIndex);
-			}
-			else
-			{
-				// We have a local matrix, we need to convert it to
-				// a global space matrix.
-				FbxAMatrix lParentGlobalPosition;
-
-				if (pParentGlobalPosition)
-				{
-					lParentGlobalPosition = *pParentGlobalPosition;
-				}
-				else
-				{
-					if (pNode->GetParent())
-					{
-						lParentGlobalPosition = GetGlobalPosition(pNode->GetParent(), pTime, pPose);
-					}
-				}
-
-				FbxAMatrix lLocalPosition = GetPoseMatrix(pPose, lNodeIndex);
-				lGlobalPosition = lParentGlobalPosition * lLocalPosition;
-			}
-
-			lPositionFound = true;
+		case FbxGeometryElement::eDirect:
+		{
+			outNormal.x = static_cast<float>(vertexNormal->GetDirectArray().GetAt(inCtrlPointIndex).mData[0]);
+			outNormal.y = static_cast<float>(vertexNormal->GetDirectArray().GetAt(inCtrlPointIndex).mData[1]);
+			outNormal.z = static_cast<float>(vertexNormal->GetDirectArray().GetAt(inCtrlPointIndex).mData[2]);
 		}
+		break;
+
+		case FbxGeometryElement::eIndexToDirect:
+		{
+			int index = vertexNormal->GetIndexArray().GetAt(inCtrlPointIndex);
+			outNormal.x = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[0]);
+			outNormal.y = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[1]);
+			outNormal.z = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[2]);
+		}
+		break;
+
+		default:
+			throw std::exception("Invalid Reference");
+		}
+		break;
+
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (vertexNormal->GetReferenceMode())
+		{
+		case FbxGeometryElement::eDirect:
+		{
+			outNormal.x = static_cast<float>(vertexNormal->GetDirectArray().GetAt(inVertexCounter).mData[0]);
+			outNormal.y = static_cast<float>(vertexNormal->GetDirectArray().GetAt(inVertexCounter).mData[1]);
+			outNormal.z = static_cast<float>(vertexNormal->GetDirectArray().GetAt(inVertexCounter).mData[2]);
+		}
+		break;
+
+		case FbxGeometryElement::eIndexToDirect:
+		{
+			int index = vertexNormal->GetIndexArray().GetAt(inVertexCounter);
+			outNormal.x = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[0]);
+			outNormal.y = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[1]);
+			outNormal.z = static_cast<float>(vertexNormal->GetDirectArray().GetAt(index).mData[2]);
+		}
+		break;
+
+		default:
+			throw std::exception("Invalid Reference");
+		}
+		break;
 	}
-
-	if (!lPositionFound)
-	{
-		// There is no pose entry for that node, get the current global position instead.
-
-		// Ideally this would use parent global position and local position to compute the global position.
-		// Unfortunately the equation 
-		//    lGlobalPosition = pParentGlobalPosition * lLocalPosition
-		// does not hold when inheritance type is other than "Parent" (RSrs).
-		// To compute the parent rotation and scaling is tricky in the RrSs and Rrs cases.
-		lGlobalPosition = pNode->EvaluateGlobalTransform(pTime);
-	}
-
-	return lGlobalPosition;
 }
-FbxAMatrix GetGeometry(FbxNode* pNode)
+void ReadUV(FbxMesh* inMesh, int inCtrlPointIndex, int inTextureUVIndex, int inUVLayer, XMFLOAT2& outUV)
 {
-	const FbxVector4 lT = pNode->GetGeometricTranslation(FbxNode::eSourcePivot);
-	const FbxVector4 lR = pNode->GetGeometricRotation(FbxNode::eSourcePivot);
-	const FbxVector4 lS = pNode->GetGeometricScaling(FbxNode::eSourcePivot);
+	if (inUVLayer >= 2 || inMesh->GetElementUVCount() <= inUVLayer)
+	{
+		throw std::exception("Invalid UV Layer Number");
+	}
+	FbxGeometryElementUV* vertexUV = inMesh->GetElementUV(inUVLayer);
 
-	return FbxAMatrix(lT, lR, lS);
+	switch (vertexUV->GetMappingMode())
+	{
+	case FbxGeometryElement::eByControlPoint:
+		switch (vertexUV->GetReferenceMode())
+		{
+		case FbxGeometryElement::eDirect:
+		{
+			outUV.x = static_cast<float>(vertexUV->GetDirectArray().GetAt(inCtrlPointIndex).mData[0]);
+			outUV.y = static_cast<float>(vertexUV->GetDirectArray().GetAt(inCtrlPointIndex).mData[1]);
+		}
+		break;
+
+		case FbxGeometryElement::eIndexToDirect:
+		{
+			int index = vertexUV->GetIndexArray().GetAt(inCtrlPointIndex);
+			outUV.x = static_cast<float>(vertexUV->GetDirectArray().GetAt(index).mData[0]);
+			outUV.y = static_cast<float>(vertexUV->GetDirectArray().GetAt(index).mData[1]);
+		}
+		break;
+
+		default:
+			throw std::exception("Invalid Reference");
+		}
+		break;
+
+	case FbxGeometryElement::eByPolygonVertex:
+		switch (vertexUV->GetReferenceMode())
+		{
+		case FbxGeometryElement::eDirect:
+		case FbxGeometryElement::eIndexToDirect:
+		{
+			outUV.x = static_cast<float>(vertexUV->GetDirectArray().GetAt(inTextureUVIndex).mData[0]);
+			outUV.y = static_cast<float>(vertexUV->GetDirectArray().GetAt(inTextureUVIndex).mData[1]);
+		}
+		break;
+
+		default:
+			throw std::exception("Invalid Reference");
+		}
+		break;
+	}
+}
+XMFLOAT3 ConvertFloat3(FbxVector4& vec)
+{
+	XMFLOAT3 ret;
+	ret.x = vec.mData[0];
+	ret.y = vec.mData[1];
+	ret.z = vec.mData[2];
+
+	return ret;
+}
+
+XMFLOAT2 ConvertFloat2(FbxVector2& vec)
+{
+	XMFLOAT2 ret;
+	ret.x = vec.mData[0];
+	ret.y = vec.mData[1];
+
+	return ret;
 }
 
 
@@ -226,32 +275,7 @@ bool SkinMesh::LoadFile()
 		mCurrentAnimLayer = lCurrentAnimationStack->GetMember<FbxAnimLayer>();
 		mScene->SetCurrentAnimationStack(lCurrentAnimationStack);
 
-		FbxTakeInfo* lCurrentTakeInfo = mScene->GetTakeInfo(*(mAnimStackNameArray[0]));
-		if (lCurrentTakeInfo)
-		{
-			mStart = lCurrentTakeInfo->mLocalTimeSpan.GetStart();
-			mStop = lCurrentTakeInfo->mLocalTimeSpan.GetStop();
-		}
-		else
-		{
-			// Take the time line value
-			FbxTimeSpan lTimeLineTimeSpan;
-			mScene->GetGlobalSettings().GetTimelineDefaultTimeSpan(lTimeLineTimeSpan);
-
-			mStart = lTimeLineTimeSpan.GetStart();
-			mStop = lTimeLineTimeSpan.GetStop();
-		}
-
-		// check for smallest start with cache start
-		if (mCache_Start < mStart)
-			mStart = mCache_Start;
-
-		// check for biggest stop with cache stop
-		if (mCache_Stop  > mStop)
-			mStop = mCache_Stop;
-
-		// Initialize the frame period.
-		mFrameTime.SetTime(0, 0, 0, 1, 0, mScene->GetGlobalSettings().GetTimeMode());
+	
 
 		TEST("Success");
 	}
@@ -271,173 +295,128 @@ bool SkinMesh::LoadFile()
 	return result;
 }
 
-//void SkinMesh::OnDisplay()
-//{
-//	if (mStop > mStart)
-//	{
-//		// Set the scene status flag to refresh 
-//		// the scene in the next timer callback
-//		mCurrentTime += mFrameTime;
-//
-//		if (mCurrentTime > mStop)
-//		{
-//			mCurrentTime = mStart;
-//		}
-//	}
-//
-//	FbxPose * lPose = NULL;
-//	lPose = mScene->GetPose(1);
-//	// If one node is selected, draw it and its children.
-//	FbxAMatrix lDummyGlobalPosition;
-//
-//	DrawNodeRecursive(mScene->GetRootNode(), mCurrentTime, mCurrentAnimLayer, lDummyGlobalPosition, lPose);
-//}
-//
-//void SkinMesh::DrawNodeRecursive(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimLayer,
-//	FbxAMatrix& pParentGlobalPosition, FbxPose* pPose)
-//{
-//	FbxAMatrix lGlobalPosition = GetGlobalPosition(pNode, pTime, pPose, &pParentGlobalPosition);
-//	if (pNode->GetNodeAttribute())
-//	{
-//		// Geometry offset.
-//		// it is not inherited by the children.
-//		FbxAMatrix lGeometryOffset = GetGeometry(pNode);
-//		FbxAMatrix lGlobalOffPosition = lGlobalPosition * lGeometryOffset;
-//
-//		DrawNode(pNode, pTime, pAnimLayer, pParentGlobalPosition, lGlobalOffPosition, pPose);
-//	}
-//
-//	const int lChildCount = pNode->GetChildCount();
-//	for (int lChildIndex = 0; lChildIndex < lChildCount; ++lChildIndex)
-//	{
-//		DrawNodeRecursive(pNode->GetChild(lChildIndex), pTime, pAnimLayer, lGlobalPosition, pPose);
-//	}
-//}
-//
-//void SkinMesh::DrawNode(FbxNode * pNode, FbxTime & pTime, FbxAnimLayer * pAnimLayer, FbxAMatrix & pParentGlobalPosition, FbxAMatrix & pGlobalPosition, FbxPose * pPose)
-//{
-//	FbxNodeAttribute* lNodeAttribute = pNode->GetNodeAttribute();
-//
-//	if (lNodeAttribute)
-//	{
-//		if (lNodeAttribute->GetAttributeType() == FbxNodeAttribute::eMesh)
-//		{
-//			DrawMesh(pNode, pTime, pAnimLayer, pGlobalPosition, pPose);
-//		}
-//	}
-//}
-//
-//// Draw the vertices of a mesh.
-//void SkinMesh::DrawMesh(FbxNode* pNode, FbxTime& pTime, FbxAnimLayer* pAnimLayer,
-//	FbxAMatrix& pGlobalPosition, FbxPose* pPose)
-//{
-//	FbxMesh* lMesh = pNode->GetMesh();
-//	const int lVertexCount = lMesh->GetControlPointsCount();
-//
-//	// No vertex to draw.
-//	if (lVertexCount == 0)
-//	{
-//		return;
-//	}
-//
-//
-//	// If it has some defomer connection, update the vertices position
-//	const bool lHasVertexCache = lMesh->GetDeformerCount(FbxDeformer::eVertexCache) &&
-//		(static_cast<FbxVertexCacheDeformer*>(lMesh->GetDeformer(0, FbxDeformer::eVertexCache)))->Active.Get();
-//	const bool lHasShape = lMesh->GetShapeCount() > 0;
-//	const bool lHasSkin = lMesh->GetDeformerCount(FbxDeformer::eSkin) > 0;
-//	const bool lHasDeformation = lHasVertexCache || lHasShape || lHasSkin;
-//
-//	FbxVector4* lVertexArray = NULL;
-//	if (!lMeshCache || lHasDeformation)
-//	{
-//		lVertexArray = new FbxVector4[lVertexCount];
-//		memcpy(lVertexArray, lMesh->GetControlPoints(), lVertexCount * sizeof(FbxVector4));
-//	}
-//
-//
-//
-//	if (lHasDeformation)
-//	{
-//		// Active vertex cache deformer will overwrite any other deformer
-//		if (lHasVertexCache)
-//		{
-//			ReadVertexCacheData(lMesh, pTime, lVertexArray);
-//		}
-//		else
-//		{
-//			if (lHasShape)
-//			{
-//				// Deform the vertex array with the shapes.
-//				ComputeShapeDeformation(lMesh, pTime, pAnimLayer, lVertexArray);
-//			}
-//			//we need to get the number of clusters
-//			const int lSkinCount = lMesh->GetDeformerCount(FbxDeformer::eSkin);
-//			int lClusterCount = 0;
-//			for (int lSkinIndex = 0; lSkinIndex < lSkinCount; ++lSkinIndex)
-//			{
-//				lClusterCount += ((FbxSkin *)(lMesh->GetDeformer(lSkinIndex, FbxDeformer::eSkin)))->GetClusterCount();
-//			}
-//			if (lClusterCount)
-//			{
-//				// Deform the vertex array with the skin deformer.
-//				ComputeSkinDeformation(pGlobalPosition, lMesh, pTime, lVertexArray, pPose);
-//			}
-//		}
-//
-//		if (lMeshCache)
-//			lMeshCache->UpdateVertexPosition(lMesh, lVertexArray);
-//	}
-//
-//	glPushMatrix();
-//	glMultMatrixd((const double*)pGlobalPosition);
-//
-//	if (lMeshCache)
-//	{
-//		lMeshCache->BeginDraw(pShadingMode);
-//		const int lSubMeshCount = lMeshCache->GetSubMeshCount();
-//		for (int lIndex = 0; lIndex < lSubMeshCount; ++lIndex)
-//		{
-//			if (pShadingMode == SHADING_MODE_SHADED)
-//			{
-//				const FbxSurfaceMaterial * lMaterial = pNode->GetMaterial(lIndex);
-//				if (lMaterial)
-//				{
-//					const MaterialCache * lMaterialCache = static_cast<const MaterialCache *>(lMaterial->GetUserDataPtr());
-//					if (lMaterialCache)
-//					{
-//						lMaterialCache->SetCurrentMaterial();
-//					}
-//				}
-//				else
-//				{
-//					// Draw green for faces without material
-//					MaterialCache::SetDefaultMaterial();
-//				}
-//			}
-//
-//			lMeshCache->Draw(lIndex, pShadingMode);
-//		}
-//		lMeshCache->EndDraw();
-//	}
-//	else
-//	{
-//		// OpenGL driver is too lower and use Immediate Mode
-//		glColor4f(0.5f, 0.5f, 0.5f, 1.0f);
-//		const int lPolygonCount = lMesh->GetPolygonCount();
-//		for (int lPolygonIndex = 0; lPolygonIndex < lPolygonCount; lPolygonIndex++)
-//		{
-//			const int lVerticeCount = lMesh->GetPolygonSize(lPolygonIndex);
-//			glBegin(GL_LINE_LOOP);
-//			for (int lVerticeIndex = 0; lVerticeIndex < lVerticeCount; lVerticeIndex++)
-//			{
-//				glVertex3dv((GLdouble *)lVertexArray[lMesh->GetPolygonVertex(lPolygonIndex, lVerticeIndex)]);
-//			}
-//			glEnd();
-//		}
-//	}
-//
-//	glPopMatrix();
-//
-//	delete[] lVertexArray;
-//}
+
+void SkinMesh::ProcessGeometry(FbxNode* inNode)
+{
+	if (inNode->GetNodeAttribute())
+	{
+		switch (inNode->GetNodeAttribute()->GetAttributeType())
+		{
+		case FbxNodeAttribute::eMesh:
+			//ProcessControlPoints(inNode);
+			//if (mHasAnimation)
+			//{
+			//	ProcessJointsAndAnimations(inNode);
+			//}
+			ProcessMesh(inNode);
+			//AssociateMaterialToMesh(inNode);
+			//ProcessMaterials(inNode);
+			break;
+		}
+	}
+
+	for (int i = 0; i < inNode->GetChildCount(); ++i)
+	{
+		ProcessGeometry(inNode->GetChild(i));
+	}
+}
+
+
+void SkinMesh::ProcessMesh(FbxNode* inNode)
+{
+	FbxMesh* pMesh = inNode->GetMesh();
+
+	if (!pMesh)
+		return;
+
+	int lPolygonCount = pMesh->GetPolygonCount();
+
+	FbxVector4 pos, nor;
+
+	unsigned int indx = 0;
+	FbxStringList	uvsetName;
+	pMesh->GetUVSetNames(uvsetName);
+	int numUVSet = uvsetName.GetCount();
+	bool unmapped = false;
+
+
+	for (int i = 0; i<lPolygonCount; i++)
+	{
+		// ?リゴン内の頂?数(一応、三角?化してるので3?のはずだが?ェック)
+		int lPolygonsize = pMesh->GetPolygonSize(i);
+
+		for (int pol = 0; pol<lPolygonsize; pol++)
+		{
+			VertexData temp;
+			int index = pMesh->GetPolygonVertex(i, pol);
+			mIndices.push_back(indx);
+
+			pos = pMesh->GetControlPointAt(index);
+			pMesh->GetPolygonVertexNormal(i, pol, nor);
+
+			
+			temp.pos = ConvertFloat3(pos);
+			temp.normal = ConvertFloat3(nor);
+
+
+
+			FbxString name = uvsetName.GetStringAt(0);
+			FbxVector2 texCoord;
+			pMesh->GetPolygonVertexUV(i, pol, name, texCoord, unmapped);
+			temp.tex = ConvertFloat2(texCoord);
+
+			mVertexData.push_back(temp);
+
+			++indx;
+		}
+	}
+
+	//for (unsigned int i = 0; i < mTriangleCount; ++i)
+	//{
+	//	XMFLOAT3 normal[3];
+	//	XMFLOAT3 tangent[3];
+	//	XMFLOAT3 binormal[3];
+	//	XMFLOAT2 UV[3][2];
+
+	//	for (unsigned int j = 0; j < 3; ++j)
+	//	{
+	//		int ctrlPointIndex = currMesh->GetPolygonVertex(i, j);
+
+	//		ReadNormal(currMesh, ctrlPointIndex, vertexCounter, normal[j]);
+	//		// We only have diffuse texture
+	//		for (int k = 0; k < 1; ++k)
+	//		{
+	//			ReadUV(currMesh, ctrlPointIndex, currMesh->GetTextureUVIndex(i, j), k, UV[j][k]);
+	//		}
+
+
+	//		VertexData temp;
+	//		temp.pos = currCtrlPoint->mPosition;
+	//		temp.normal = normal[j];
+	//		temp.tex = UV[j][0];
+	//		// Copy the blending info from each control point
+	//		for (unsigned int i = 0; i < currCtrlPoint->mBlendingInfo.size(); ++i)
+	//		{
+	//			VertexBlendingInfo currBlendingInfo;
+	//			currBlendingInfo.mBlendingIndex = currCtrlPoint->mBlendingInfo[i].mBlendingIndex;
+	//			currBlendingInfo.mBlendingWeight = currCtrlPoint->mBlendingInfo[i].mBlendingWeight;
+	//			temp.mVertexBlendingInfos.push_back(currBlendingInfo);
+	//		}
+	//		// Sort the blending info so that later we can remove
+	//		// duplicated vertices
+	//		temp.SortBlendingInfoByWeight();
+
+	//		mVertexData.push_back(temp);
+	//		mTriangles.back().mIndices.push_back(vertexCounter);
+	//		++vertexCounter;
+	//	}
+	//}
+
+	//// Now mControlPoints has served its purpose
+	//// We can free its memory
+	//for (auto itr = mControlPoints.begin(); itr != mControlPoints.end(); ++itr)
+	//{
+	//	delete itr->second;
+	//}
+	//mControlPoints.clear();
+}
