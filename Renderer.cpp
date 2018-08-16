@@ -284,8 +284,7 @@ void Renderer::UpdateSkinnedCBs(const GameTimer & gt)
 	auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();
 
 
-	// We only have one skinned model being animated.
-	mMesh->BoneTransform(gt.TotalTime(), boneTransform);
+	 //We only have one skinned model being animated
 	SkinnedConstants skinnedConstants;
 	std::copy(
 		std::begin(boneTransform),
@@ -777,99 +776,6 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 		}
 	}
 	in.close();
-		/*
-		if (text == "BONETREE")
-		{
-			in >> numBone;
-			boneOffsets.resize(numBone);
-			boneIndexToParentIndex.resize(numBone);
-			std::string name;
-			int index,parentIndex;
-			for (int i = 0; i < numBone; i++)
-			{
-				in >> name;
-				in >> index >> parentIndex;
-				boneIndexToParentIndex[i] = parentIndex;
-				in>>
-					boneOffsets[i](0, 0) >> boneOffsets[i](0, 1) >> boneOffsets[i](0, 2) >> boneOffsets[i](0, 3) >>
-					boneOffsets[i](1, 0) >> boneOffsets[i](1, 1) >> boneOffsets[i](1, 2) >> boneOffsets[i](1, 3) >>
-					boneOffsets[i](2, 0) >> boneOffsets[i](2, 1) >> boneOffsets[i](2, 2) >> boneOffsets[i](2, 3) >>
-					boneOffsets[i](3, 0) >> boneOffsets[i](3, 1) >> boneOffsets[i](3, 2) >> boneOffsets[i](3, 3);
-				in >> ignore;
-			}
-		}
-		if (text == "ANIMATIONCLIP")
-		{
-			int clipSize = 0;
-			int frameSize = 0;
-			float time = 0;
-
-
-			in >> clipSize;
-			AnimationClip clip;
-			clip.BoneAnimations.resize(numBone);
-
-			for (int i = 0; i < clipSize; i++)
-			{
-				in >> ignore;
-				in >> ignore;
-				in>> frameSize;
-
-				XMFLOAT3 pos(0.0f, 0.0f, 0.0f);
-				XMFLOAT3 scale(1.0f, 1.0f, 1.0f);
-				XMFLOAT4 rot(0.0f, 0.0f, 0.0f, 1.0f);
-	
-
-
-				clip.BoneAnimations[i].Keyframes.resize(frameSize);
-				for (int j = 0; j < frameSize; j++)
-				{
-					in >> time;
-					in >> pos.x >> pos.y >> pos.z;
-					in >> rot.x >> rot.y >> rot.z >> rot.w;
-					in >> scale.x >> scale.y >> scale.z;
-
-					clip.BoneAnimations[i].Keyframes[j].TimePos = time;
-					clip.BoneAnimations[i].Keyframes[j].Translation = pos;
-					clip.BoneAnimations[i].Keyframes[j].RotationQuat = rot;
-					clip.BoneAnimations[i].Keyframes[j].Scale = scale;
-
-				}
-			}
-
-			for (int i = clipSize; i < numBone; i++)//뼈개수와 애니메이션개수가 다르면
-			{
-
-				XMFLOAT3 pos(0.0f, 0.0f, 0.0f);
-				XMFLOAT3 scale(1.0f, 1.0f, 1.0f);
-				XMFLOAT4 rot(0.0f, 0.0f, 0.0f, 1.0f);
-				clip.BoneAnimations[i].Keyframes.resize(frameSize);
-				for (int j = 0; j < frameSize; j++)
-				{
-					clip.BoneAnimations[i].Keyframes[j].TimePos = (j) / 15;
-					clip.BoneAnimations[i].Keyframes[j].Translation = pos;
-					clip.BoneAnimations[i].Keyframes[j].RotationQuat = rot;
-					clip.BoneAnimations[i].Keyframes[j].Scale = scale;
-				}
-			}
-
-			animations["Take1"] = clip;
-			while (!in.eof())
-			{
-				in >> text;
-				TEST(text);
-			}
-		}
-	}
-
-	in.close();
-
-	mSkinnedInfo.Set(boneIndexToParentIndex, boneOffsets, animations);
-	mSkinnedModelInst = std::make_unique<SkinnedModelInstance>();
-	mSkinnedModelInst->SkinnedInfo = &mSkinnedInfo;
-	mSkinnedModelInst->FinalTransforms.resize(mSkinnedInfo.BoneCount());
-	mSkinnedModelInst->ClipName = "Take1";
-	mSkinnedModelInst->TimePos = 0.0f;*/
 
 	subData.BaseVertexLocation = mGeometries[name]->TotalVertexCount;
 	subData.IndexCount = indicies.size();

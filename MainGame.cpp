@@ -35,8 +35,7 @@ MainGame::~MainGame()
 	BuildShadersAndInputLayout();
 	BuildPSOs();
 	///////////////////오브젝트 생성//////////////////////
-	mMesh = new SkinnedMesh();
-	mMesh->LoadMesh("Walking.fbx");
+	mSkinMesh = new SkinMesh("walking.fbx");
 	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL);
 //	LoadAnimationModel("ModelLoader/ModelLoader/Model/walking.model", PLAYER_MODEL2);
 	BuildShapeGeometry();

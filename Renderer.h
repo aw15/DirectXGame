@@ -3,29 +3,6 @@
 #include"Parser.h"
 #include "Common/SkinnedData.h"
 
-struct SkinnedModelInstance
-{
-	SkinnedData* SkinnedInfo = nullptr;
-	std::vector<DirectX::XMFLOAT4X4> FinalTransforms;
-	std::string ClipName;
-	float TimePos = 0.0f;
-
-	// Called every frame and increments the time position, interpolates the 
-	// animations for each bone based on the current animation clip, and 
-	// generates the final transforms which are ultimately set to the effect
-	// for processing in the vertex shader.
-	void UpdateSkinnedAnimation(float dt)
-	{
-		TimePos += dt;
-
-		// Loop animation
-		if (TimePos > SkinnedInfo->GetClipEndTime(ClipName))
-			TimePos = 0.0f;
-
-		// Compute the final transforms for this time position.
-		SkinnedInfo->GetFinalTransforms(ClipName, TimePos, FinalTransforms);
-	}
-};
 
 class Renderer : public D3DApp
 {
@@ -90,8 +67,6 @@ protected:
 	// Render items divided by PSO.
 	std::vector<RenderItem*> mObjectLayer[SORT::count];
 
-	std::unique_ptr<SkinnedModelInstance> mSkinnedModelInst;
-	SkinnedData mSkinnedInfo;
 
 	PassConstants mMainPassCB;
 
@@ -99,6 +74,6 @@ protected:
 
 	POINT mLastMousePos;
 /////////////////////////////////////////////////////////////////////
-	vector<XMFLOAT4X4> boneTransform;
-	SkinnedMesh* mMesh;
+	std::vector<XMFLOAT4X4> boneTransform;
+	SkinMesh* mSkinMesh;
 };

@@ -51,9 +51,6 @@
     <ClCompile Include="MainGame.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -68,6 +65,9 @@
     </ClCompile>
     <ClCompile Include="Parser.cpp">
       <Filter>Animation</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
