@@ -60,14 +60,14 @@
     <ClCompile Include="Common\WICTextureLoader12.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Common\SkinnedData.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="Parser.cpp">
       <Filter>Animation</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>Animation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,10 +116,10 @@
     <ClInclude Include="Common\WICTextureLoader12.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Common\SkinnedData.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Parser.h">
+      <Filter>Animation</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
       <Filter>Animation</Filter>
     </ClInclude>
   </ItemGroup>

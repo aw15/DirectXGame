@@ -1,7 +1,6 @@
 #pragma once
 #include"Object.h"
 #include"Parser.h"
-#include "Common/SkinnedData.h"
 
 
 class Renderer : public D3DApp

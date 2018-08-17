@@ -697,12 +697,12 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 	geo->Name = name;
 	mGeometries[name] = std::move(geo);
 
-	std::ifstream in(path);
-	auto data = in.is_open();
-	if (!in.is_open())
-	{
-		return;
-	}
+	//std::ifstream in(path);
+	//auto data = in.is_open();
+	//if (!in.is_open())
+	//{
+	//	return;
+	//}
 
 	GeometryGenerator::MeshData model;
 	SubmeshGeometry subData;
@@ -711,71 +711,91 @@ void Renderer::LoadAnimationModel(const char * path, std::string name)
 	std::vector<Vertex> vertices;
 	std::vector<uint16_t> indicies;
 
+	for (auto& data : mSkinMesh->mVertexData)
+	{
+		Vertex vertex;
+		vertex.Pos = data.pos;
+		vertex.TexC = data.tex;
+		vertex.Normal = data.normal;
+
+		vertex.weights.x = data.mVertexBlendingInfos[0].mBlendingWeight;
+		vertex.weights.y = data.mVertexBlendingInfos[1].mBlendingWeight;
+		vertex.weights.z = data.mVertexBlendingInfos[2].mBlendingWeight;
+		
+		vertex.boneIndex.x = data.mVertexBlendingInfos[0].mBlendingIndex;
+		vertex.boneIndex.y = data.mVertexBlendingInfos[1].mBlendingIndex;
+		vertex.boneIndex.z = data.mVertexBlendingInfos[2].mBlendingIndex;
+		vertex.boneIndex.w = data.mVertexBlendingInfos[3].mBlendingIndex;
+
+		vertices.push_back(vertex);
+	}
+	for (auto& data : mSkinMesh->mTriangles)
+	{
+		for(auto& index : data.mIndices)
+			indicies.push_back(index);
+	}
 
 	std::string text;
 	std::string ignore;
 
-	int vertexSize = 0;
-	in >> vertexSize;
-	vertices.resize(vertexSize);
+	//int vertexSize = 0;
+	//in >> vertexSize;
+	//vertices.resize(vertexSize);
 
-	std::vector<XMFLOAT4X4> boneOffsets;
-	std::vector<int> boneIndexToParentIndex;
-	std::unordered_map<std::string, AnimationClip> animations;
-	float x, y, z;
-	int a, b, c, d;
-	int numBone=0;
+	//float x, y, z;
+	//int a, b, c, d;
+	//int numBone=0;
 
-	while (!in.eof())
-	{
-		in >> text;
-		if (text == "VERTEXDATA")
-		{
-			for (int i = 0; i < vertexSize; ++i)
-			{
+	//while (!in.eof())
+	//{
+	//	in >> text;
+	//	if (text == "VERTEXDATA")
+	//	{
+	//		for (int i = 0; i < vertexSize; ++i)
+	//		{
 
-				in >> x >> y >> z;
-				vertices[i].Pos.x = x;
-				vertices[i].Pos.y = y;
-				vertices[i].Pos.z = z;
+	//			in >> x >> y >> z;
+	//			vertices[i].Pos.x = x;
+	//			vertices[i].Pos.y = y;
+	//			vertices[i].Pos.z = z;
 
 
-				in >> x >> y;
-				vertices[i].TexC.x = x;
-				vertices[i].TexC.y = y;
+	//			in >> x >> y;
+	//			vertices[i].TexC.x = x;
+	//			vertices[i].TexC.y = y;
 
-				in >> x >> y >> z;
-				vertices[i].Normal.x = x;
-				vertices[i].Normal.y = y;
-				vertices[i].Normal.z = z;
+	//			in >> x >> y >> z;
+	//			vertices[i].Normal.x = x;
+	//			vertices[i].Normal.y = y;
+	//			vertices[i].Normal.z = z;
 
-				in >> x >> y >> z;
-				vertices[i].weights.x = x;
-				vertices[i].weights.y = y;
-				vertices[i].weights.z = z;
+	//			in >> x >> y >> z;
+	//			vertices[i].weights.x = x;
+	//			vertices[i].weights.y = y;
+	//			vertices[i].weights.z = z;
 
-				in >> a >> b >> c >> d;
-				vertices[i].boneIndex.x = a;
-				vertices[i].boneIndex.y = b;
-				vertices[i].boneIndex.z = c;
-				vertices[i].boneIndex.w = d;
+	//			in >> a >> b >> c >> d;
+	//			vertices[i].boneIndex.x = a;
+	//			vertices[i].boneIndex.y = b;
+	//			vertices[i].boneIndex.z = c;
+	//			vertices[i].boneIndex.w = d;
 
-				in >> ignore;
-			}
-		}
-		if (text == "INDEX")
-		{
-			int indexSize;
-			in >> indexSize;
-			for (int i = 0; i < indexSize; ++i)
-			{
-				int index;
-				in >> index;
-				indicies.push_back(index);
-			}
-		}
-	}
-	in.close();
+	//			in >> ignore;
+	//		}
+	//	}
+	//	if (text == "INDEX")
+	//	{
+	//		int indexSize;
+	//		in >> indexSize;
+	//		for (int i = 0; i < indexSize; ++i)
+	//		{
+	//			int index;
+	//			in >> index;
+	//			indicies.push_back(index);
+	//		}
+	//	}
+	//}
+	//in.close();
 
 	subData.BaseVertexLocation = mGeometries[name]->TotalVertexCount;
 	subData.IndexCount = indicies.size();
