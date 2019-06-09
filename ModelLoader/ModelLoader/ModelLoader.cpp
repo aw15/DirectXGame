@@ -2,18 +2,10 @@
 //
 
 #include "pch.h"
-#include <iostream>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include<DirectXMath.h>
-#include<vector>
-#include<unordered_map>
 
 
-using namespace std;
-using namespace DirectX;
 
+// TODO: 여기에 미리 컴파일하려는 헤더 추가
 DirectX::XMFLOAT3 ToXMFloat(aiVector3D& from)
 {
 	XMFLOAT3 temp;
@@ -42,22 +34,32 @@ DirectX::XMFLOAT2 ToXMFloat2(aiVector3D& from)
 
 	return temp;
 }
-struct SkinnedVertex
-{
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT3 Normal;
-	DirectX::XMFLOAT2 TexC;
-	DirectX::XMFLOAT3 TangentU = {0,0,0};
-	vector<float> BoneWeights;
-	vector<int> BoneIndices;
-};
 
-struct Mesh
+XMFLOAT4X4 ToXMFloatArray(aiMatrix4x4& matrix)
 {
-	int baseVertex=0;
-	vector<SkinnedVertex> meshData;
-};
+	XMFLOAT4X4 ret;
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			ret.m[i][j] = matrix[i][j];
+		}
+	}
 
+	return ret;
+}
+
+void Print(const XMFLOAT4X4& mat)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			printf("%5.1f ", mat.m[i][j]);
+		}
+		cout << endl;
+	}
+}
 
 
 void MakeBoneMapping(aiMesh* mesh);
@@ -68,9 +70,15 @@ vector<Mesh> meshes;
 unordered_map<string, int> boneMapping;
 
 
+vector<int> boneHierarchy;
+
+std::vector<DirectX::XMFLOAT4X4> boneOffsets;
+
+//std::unordered_map<std::string, AnimationClip> mAnimations;
+
+
 int main()
 {
-    std::cout << "Hello World!\n"; 
 	Assimp::Importer importer;
 	const aiScene *scene = importer.ReadFile("test.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
@@ -104,44 +112,69 @@ int main()
 		}
 
 
-		for (auto& data:boneMapping)
+		//for (auto& data:boneMapping)
+		//{
+		//	cout << data.first << " " << data.second << endl;
+		//}
+
+		boneHierarchy.resize(boneMapping.size());
+				
+		TravelNode(scene->mRootNode);//트리구조를 내려가며 뼈 계층구조를 만듬.
+
+
+		for (auto& data : boneMapping)
 		{
-			cout << data.first << " " << data.second << endl;
+			cout << data.first<<" ";
+			cout  << data.second<<" ";
+			cout << boneHierarchy[data.second] << endl;
 		}
 
-		//TravelNode(scene->mRootNode);
+
+		//for (int i=0;i< boneHierarchy.size();i++)
+		//{
+		//	cout << i << " " << boneHierarchy[i] << endl;
+
+		//	//Print(boneOffsets[i]);
+		//}
 
 
-		for (int i = 0; i < scene->mNumMeshes; i++)
-		{
-			for (auto data : meshes[i].meshData)
-			{
-				cout << "boneIndice : ";
-				for (auto bone : data.BoneIndices)
-				{
-					cout << bone << " ";
-				}
-				cout << "boneWeight : ";
-				for (auto weight : data.BoneWeights)
-				{
-					cout << weight << " ";
-				}
-				cout << endl;
-			}
-		}
+		
+
+		//for (int i = 0; i < scene->mNumMeshes; i++)
+		//{
+		//	for (auto data : meshes[i].meshData)
+		//	{
+		//		cout << "boneIndice : ";
+		//		for (auto bone : data.BoneIndices)
+		//		{
+		//			cout << bone << " ";
+		//		}
+		//		cout << "boneWeight : ";
+		//		for (auto weight : data.BoneWeights)
+		//		{
+		//			cout << weight << " ";
+		//		}
+		//		cout << endl;
+		//	}
+		//}
 	}
 
-	//cout << "test";
 }
 
 
 
 void MakeBoneMapping(aiMesh * mesh)
 {
+	static int num = 0;
+
+
+	boneOffsets.resize(boneMapping.size() + mesh->mNumBones);
 	for (int i = 0; i < mesh->mNumBones; i++)
 	{
 		if (boneMapping.find(mesh->mBones[i]->mName.C_Str()) == boneMapping.end())
 		{
+			boneOffsets[boneMapping.size()] = ToXMFloatArray( mesh->mBones[i]->mOffsetMatrix );
+
 			boneMapping[mesh->mBones[i]->mName.C_Str()] = boneMapping.size();
 		}
 	}
@@ -185,10 +218,19 @@ void TravelMesh(aiMesh* mesh,int index)
 
 void TravelNode(aiNode* node)
 {
-	if (node->mParent)
+	if (node->mParent && boneMapping.find(node->mName.C_Str()) != boneMapping.end())
 	{
-		cout << node->mName.C_Str() << " " << node->mParent->mName.C_Str() << endl;
+		if (boneMapping.find(node->mParent->mName.C_Str()) != boneMapping.end())
+		{
+			boneHierarchy[boneMapping[node->mName.C_Str()]] = boneMapping[node->mParent->mName.C_Str()];
+		}
+		else
+		{
+			boneHierarchy[boneMapping[node->mName.C_Str()]] = -1;
+		}
 	}
+	
+
 	for (int i = 0; i < node->mNumChildren; i++)
 	{
 		TravelNode(node->mChildren[i]);

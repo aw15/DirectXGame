@@ -9,6 +9,71 @@
 #ifndef PCH_H
 #define PCH_H
 
-// TODO: 여기에 미리 컴파일하려는 헤더 추가
+#include <iostream>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include<DirectXMath.h>
+#include<vector>
+#include<unordered_map>
+
+
+using namespace std;
+using namespace DirectX;
+
+
+
+
+
+struct SkinnedVertex
+{
+	DirectX::XMFLOAT3 Pos;
+	DirectX::XMFLOAT3 Normal;
+	DirectX::XMFLOAT2 TexC;
+	DirectX::XMFLOAT3 TangentU = { 0,0,0 };
+	vector<float> BoneWeights;
+	vector<int> BoneIndices;
+};
+
+//struct Keyframe
+//{
+//	Keyframe();
+//	~Keyframe();
+//
+//	float TimePos;
+//	DirectX::XMFLOAT3 Translation;
+//	DirectX::XMFLOAT3 Scale;
+//	DirectX::XMFLOAT4 RotationQuat;
+//};
+//
+//struct BoneAnimation
+//{
+//	float GetStartTime()const;
+//	float GetEndTime()const;
+//
+//	void Interpolate(float t, DirectX::XMFLOAT4X4& M)const;
+//
+//	std::vector<Keyframe> Keyframes;
+//};
+//
+//
+//struct AnimationClip
+//{
+//	float GetClipStartTime()const;
+//	float GetClipEndTime()const;
+//
+//	void Interpolate(float t, std::vector<DirectX::XMFLOAT4X4>& boneTransforms)const;
+//
+//	std::vector<BoneAnimation> BoneAnimations;
+//};
+
+
+struct Mesh
+{
+	int baseVertex = 0;
+	vector<SkinnedVertex> meshData;
+};
+
+
 
 #endif //PCH_H
