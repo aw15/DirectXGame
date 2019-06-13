@@ -10,29 +10,49 @@
 #define PCH_H
 
 #include <iostream>
+
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include<DirectXMath.h>
 #include<vector>
 #include<unordered_map>
-
+#include<algorithm>
 
 using namespace std;
 using namespace DirectX;
 
+struct VertexBoneData
+{
 
+	int index;
+	float weight;
+};
 
 
 
 struct SkinnedVertex
 {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT3 Normal;
-	DirectX::XMFLOAT2 TexC;
-	DirectX::XMFLOAT3 TangentU = { 0,0,0 };
+	DirectX::XMFLOAT3 pos;
+	DirectX::XMFLOAT3 normal;
+	DirectX::XMFLOAT2 uv;
+	DirectX::XMFLOAT3 tangentU = { 0,0,0 };
+	vector<VertexBoneData> boneData;
 	vector<float> BoneWeights;
 	vector<int> BoneIndices;
+
+
+	void PrintPos()
+	{
+		printf("(%f , %f, %f) ", pos.x, pos.y, pos.z);
+	}
+};
+
+
+struct Subset
+{
+	unsigned int baseVertex;
+
 };
 
 //struct Keyframe
