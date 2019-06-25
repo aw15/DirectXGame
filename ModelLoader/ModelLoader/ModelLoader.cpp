@@ -2,7 +2,7 @@
 //
 
 #include "pch.h"
-
+#include<fstream>
 
 
 // TODO: 여기에 미리 컴파일하려는 헤더 추가
@@ -84,7 +84,9 @@ std::vector<DirectX::XMFLOAT4X4> boneOffsets;
 int main()
 {
 	Assimp::Importer importer;
-	const aiScene *scene = importer.ReadFile("yelling.fbx", aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
+	string fileName;
+	cin >> fileName;
+	const aiScene *scene = importer.ReadFile(fileName, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
 
 
@@ -130,6 +132,22 @@ int main()
 		}
 
 
+		ofstream out(fileName + "mesh",ios::trunc);
+		out << "VertexSize: ";
+		out << verticies.size()<<endl;
+		for (auto& data : verticies)
+		{
+			out << data.pos.x << " " << data.pos.y << " " << data.pos.z<<endl;
+			out << data.normal.x<<" "  << data.normal.y<<" "<< data.normal.z << endl;
+			out << data.uv.x << " " << data.uv.y << endl;
+		}
+		
+		out<<"IndexSize: " << indices.size() << endl;
+		for (int data : indices)
+		{
+			out << data << endl;
+		}
+		out.close();
 
 		//for (int i=0;i<indices.size();i+=3)
 		//{
