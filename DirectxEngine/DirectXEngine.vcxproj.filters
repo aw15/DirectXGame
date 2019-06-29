@@ -19,6 +19,9 @@
     <Filter Include="Animation">
       <UniqueIdentifier>{381b909d-59bf-4a7d-bccf-4eeabb258db0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="deprecated">
+      <UniqueIdentifier>{223b77e4-f95b-4a8f-8486-a195e3791186}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Common\Camera.cpp">
@@ -48,23 +51,26 @@
     <ClCompile Include="FrameResource.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="MainGame.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
-    <ClCompile Include="Object.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Common\WICTextureLoader12.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Mesh.cpp">
       <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="MyGame.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="MainGame.cpp">
+      <Filter>deprecated</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer.cpp">
+      <Filter>deprecated</Filter>
+    </ClCompile>
+    <ClCompile Include="Object.cpp">
+      <Filter>deprecated</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -98,15 +104,6 @@
     <ClInclude Include="FrameResource.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="MainGame.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Renderer.h">
-      <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Object.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -115,6 +112,18 @@
     </ClInclude>
     <ClInclude Include="Mesh.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="MyGame.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="MainGame.h">
+      <Filter>deprecated</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer.h">
+      <Filter>deprecated</Filter>
+    </ClInclude>
+    <ClInclude Include="Object.h">
+      <Filter>deprecated</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

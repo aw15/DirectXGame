@@ -1,5 +1,5 @@
 #include"stdafx.h"
-#include "MainGame.h"
+#include "MyGame.h"
 
 const int gNumFrameResources = 3;
 
@@ -16,7 +16,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
 
 	try
 	{
-		MainGame theApp(hInstance);
+		MyGame theApp(hInstance);
 		if (!theApp.Initialize())
 			return 0;
 

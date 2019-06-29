@@ -153,6 +153,7 @@
     <ClCompile Include="Common\WICTextureLoader12.cpp" />
     <ClCompile Include="MainGame.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="MyGame.cpp" />
     <ClCompile Include="Object.cpp" />
     <ClCompile Include="Common\Camera.cpp" />
     <ClCompile Include="Common\d3dApp.cpp" />
@@ -182,6 +183,7 @@
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="MainGame.h" />
     <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MyGame.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="stdafx.h" />
