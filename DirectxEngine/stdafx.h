@@ -22,6 +22,7 @@
 #include<algorithm>
 #include<map>
 #include"common/MathHelper.h"
+#include "common/d3dUtil.h"
 
 #define TEST(s) std::cout<<s<<std::endl
 // Link necessary d3d12 libraries.

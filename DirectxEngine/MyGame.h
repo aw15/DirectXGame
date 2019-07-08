@@ -33,7 +33,8 @@ private:
 	void BuildDescriptorHeaps();
 	void BuildConstantBuffer();
 	void BuildRootSignature();
-	void ShaderAndInputLayout();
+	void BuildShadersAndInputLayout();
+	void BuildPSO();
 
 private:
 	Mesh* squareMesh;
@@ -42,5 +43,12 @@ private:
 	std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
 	//루트 시그니처
 	ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
+	//쉐이더
+	ComPtr<ID3DBlob> mvsByteCode;
+	ComPtr<ID3DBlob> mpsByteCode;
+	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
+
+//파이프라인
+	ComPtr<ID3D12PipelineState> mPSO = nullptr;
 };
 

@@ -12,7 +12,7 @@ Mesh::~Mesh()
 	DisposeUploaders();
 }
 
-void Mesh::LoadMeshData(char * path)
+void Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12GraphicsCommandList> commandList)
 {
 	//std::ifstream in;
 
@@ -74,7 +74,33 @@ void Mesh::LoadMeshData(char * path)
 	};
 
 
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(Vertex);
+	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
+
+	ThrowIfFailed(D3DCreateBlob(vbByteSize, &vertexBufferCPU));
+	CopyMemory(vertexBufferCPU->GetBufferPointer(), vertices.data(), vbByteSize);
+
+	ThrowIfFailed(D3DCreateBlob(ibByteSize,&indexBufferCPU));
+	CopyMemory(indexBufferCPU->GetBufferPointer(), indices.data(), ibByteSize);
+
+	vertexBufferGPU = d3dUtil::CreateDefaultBuffer(device.Get(),
+		commandList.Get(), vertices.data(), vbByteSize, vertexBufferUploader);
+
+	indexBufferGPU = d3dUtil::CreateDefaultBuffer(device.Get(),
+		commandList.Get(), indices.data(), ibByteSize,indexBufferUploader);
+
+	vertexByteStride = sizeof(Vertex);
+	vertexBufferByteSize = vbByteSize;
+	indexFormat = DXGI_FORMAT_R16_UINT;
+	indexBufferByteSize = ibByteSize;
+
+	SubMesh submesh;
+	submesh.IndexCount = (UINT)indices.size();
+	submesh.StartIndexLocation = 0;
+	submesh.BaseVertexLocation = 0;
+
+	subMeshArr.push_back(submesh);
 }
 
 D3D12_VERTEX_BUFFER_VIEW Mesh::VertexBufferView() const

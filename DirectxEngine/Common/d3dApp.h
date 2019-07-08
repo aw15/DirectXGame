@@ -9,7 +9,7 @@
 #include <crtdbg.h>
 #endif
 
-#include "d3dUtil.h"
+
 #include "GameTimer.h"
 
 
