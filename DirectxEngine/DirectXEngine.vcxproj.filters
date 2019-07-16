@@ -1,10 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
     <Filter Include="Common">
       <UniqueIdentifier>{e484e726-4881-4cfd-bbdc-58732f2f23f0}</UniqueIdentifier>
     </Filter>
@@ -21,6 +17,13 @@
     </Filter>
     <Filter Include="deprecated">
       <UniqueIdentifier>{223b77e4-f95b-4a8f-8486-a195e3791186}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="GameObject">
+      <UniqueIdentifier>{0e140656-5713-4e03-98e2-842bffdc5e6c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -46,13 +49,13 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="FrameResource.cpp">
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
     <ClCompile Include="Common\WICTextureLoader12.cpp">
       <Filter>Common</Filter>
@@ -69,8 +72,11 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>deprecated</Filter>
     </ClCompile>
+    <ClCompile Include="BoxApp.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
     <ClCompile Include="Object.cpp">
-      <Filter>deprecated</Filter>
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -105,7 +111,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>Source Files</Filter>
+      <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="Common\WICTextureLoader12.h">
       <Filter>Common</Filter>
@@ -123,7 +129,7 @@
       <Filter>deprecated</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
-      <Filter>deprecated</Filter>
+      <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

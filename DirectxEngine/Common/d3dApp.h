@@ -10,8 +10,6 @@
 #endif
 
 
-#include "GameTimer.h"
-
 
 class D3DApp
 {

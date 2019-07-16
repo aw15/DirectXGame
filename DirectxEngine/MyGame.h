@@ -1,6 +1,6 @@
 #pragma once
 #include"Common/d3dApp.h"
-#include"Mesh.h"
+#include"Object.h"
 #include"Common/MathHelper.h"
 #include"Common/UploadBuffer.h"
 
@@ -17,38 +17,60 @@ struct ObjectConstants
 class MyGame : public D3DApp
 {
 public:
-	MyGame(HINSTANCE hInstance);	
+	MyGame(HINSTANCE hInstance);
 	MyGame(const MyGame& rhs) = delete;
 	MyGame& operator=(const MyGame& rhs) = delete;
-	virtual ~MyGame();
+	~MyGame();
 
-	virtual bool Initialize() override;
-
+	virtual bool Initialize()override;
 
 private:
-	virtual void OnResize() override; //창의 크기가 변하면 후면버퍼와 깊이스텐실 버퍼를 새로 생성한다.
-	virtual void Update(const GameTimer& gt) override;//매프레임마다 객체의 상태를 업데이트한다.
-	virtual void Draw(const GameTimer& gt) override;//매 프레임마다 후면버퍼에 장면을 그린다.
+	virtual void OnResize()override;
+	virtual void Update(const GameTimer& gt)override;
+	virtual void Draw(const GameTimer& gt)override;
+
+	virtual void OnMouseDown(WPARAM btnState, int x, int y)override;
+	virtual void OnMouseUp(WPARAM btnState, int x, int y)override;
+	virtual void OnMouseMove(WPARAM btnState, int x, int y)override;
 
 	void BuildDescriptorHeaps();
-	void BuildConstantBuffer();
+	void BuildConstantBuffers();
 	void BuildRootSignature();
 	void BuildShadersAndInputLayout();
 	void BuildPSO();
+	void InitMeshData();
+	void InitObjects();
+
+	/////렌더링////////
+	void RenderObjects();
 
 private:
-	Mesh* squareMesh;
-	//상수 버퍼
-	ComPtr<ID3D12DescriptorHeap> mCbvHeap = nullptr;
-	std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
-	//루트 시그니처
+
 	ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
-	//쉐이더
-	ComPtr<ID3DBlob> mvsByteCode;
-	ComPtr<ID3DBlob> mpsByteCode;
+	ComPtr<ID3D12DescriptorHeap> mCbvHeap = nullptr;
+
+	std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
+
+	std::unique_ptr<MeshGeometry> mBoxGeo = nullptr;
+
+	ComPtr<ID3DBlob> mvsByteCode = nullptr;
+	ComPtr<ID3DBlob> mpsByteCode = nullptr;
+
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 
-//파이프라인
 	ComPtr<ID3D12PipelineState> mPSO = nullptr;
+
+	XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+	XMFLOAT4X4 mView = MathHelper::Identity4x4();
+	XMFLOAT4X4 mProj = MathHelper::Identity4x4();
+
+	float mTheta = 1.5f*XM_PI;
+	float mPhi = XM_PIDIV4;
+	float mRadius = 5.0f;
+
+	POINT mLastMousePos;
+
+	std::map<std::string, std::shared_ptr<Mesh>> meshContainer;
+	std::vector<std::shared_ptr<Object>> objects;
 };
 

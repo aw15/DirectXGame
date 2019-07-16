@@ -2,50 +2,34 @@
 #include "Object.h"
 
 
-void RenderItem::Update(float elapsedTime)
+
+
+Object::Object(ID3D12Device * device, ID3D12GraphicsCommandList * commandList)
 {
-	mStandardBox->Transform(mBoundingBox, XMMatrixScaling(1.5, 1.5, 1.5)*XMMatrixTranslation(World._41, World._42, World._43));
+	this->device = device;
+	this->commandList = commandList;
 }
 
-
-
-void Player::Move(bool inverse)
+Object::~Object()
 {
-	if (!inverse)
+}
+
+void Object::SetMesh(std::shared_ptr<Mesh> mesh)
+{
+	this->mesh = mesh;
+}
+
+void Object::Draw()
+{
+	for (const auto& meshData : mesh->subMeshArr)
 	{
-		World._41 += mDir.x;
-		World._43 += mDir.z;
+		commandList->DrawIndexedInstanced(
+			meshData.IndexCount,
+			1, 0, 0, 0);
 	}
-	else
-	{
-		World._41 -= mDir.x;
-		World._43 -= mDir.z;
-	}
-	mStandardBox->Transform(mBoundingBox, XMLoadFloat4x4(&World));
 }
 
-void Player::Update(float elapsedTime)
+void Object::Updata(const GameTimer & gt)
 {
-	Move();
-	mStandardBox->Transform(mBoundingBox, XMLoadFloat4x4(&World));
 }
 
-void Bomb::Update(float elapsedTime)
-{
-	mLifetime += elapsedTime;
-}
-
-void Fire::Update(float elapsedTime)
-{
-	mLifetime += elapsedTime;
-	
-	mStandardBox->Transform(mBoundingBox, XMMatrixScaling(1, 1, 1)*XMMatrixTranslation(World._41, World._42, World._43));
-	//auto rotation = XMMatrixRotationRollPitchYawFromVector(XMLoadFloat3(&mRotation));
-
-	//XMStoreFloat4x4(&World, XMMatrixScaling(mScale.x,mScale.y,mScale.z)*rotation);
-	//World._41 = mPosition.x;
-	//World._42 = mPosition.y;
-	//World._43 = mPosition.z;
-
-	//XMStoreFloat4x4(&TexTransform, XMMatrixScaling(1, 1, 1));
-}

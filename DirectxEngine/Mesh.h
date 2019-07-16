@@ -1,18 +1,12 @@
 #pragma once
 
 
+
+
 struct ColorVertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
-};
-
-
-struct Vertex
-{
-	XMFLOAT3 Pos = {0,0,0};
-	XMFLOAT3 Normal = { 0,1,0 };
-	XMFLOAT2 Tex = { 0,0 };
 };
 
 
@@ -31,7 +25,7 @@ class Mesh
 public:
 	Mesh();
 	~Mesh();
-	void LoadMeshData(char* path, ComPtr<ID3D12Device> device, ComPtr<ID3D12GraphicsCommandList> commandList);
+	bool LoadMeshData(char* path, ComPtr<ID3D12Device> device, ComPtr<ID3D12GraphicsCommandList> commandList);
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
 	D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
