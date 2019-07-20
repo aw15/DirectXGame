@@ -153,7 +153,9 @@
     <ClCompile Include="BoxApp.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="Common\WICTextureLoader12.cpp" />
+    <ClCompile Include="Common\WICTextureLoader12.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="MainGame.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -188,7 +190,9 @@
     <ClInclude Include="Common\GeometryGenerator.h" />
     <ClInclude Include="Common\MathHelper.h" />
     <ClInclude Include="Common\UploadBuffer.h" />
-    <ClInclude Include="Common\WICTextureLoader12.h" />
+    <ClInclude Include="Common\WICTextureLoader12.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="FrameResource.h" />
     <ClInclude Include="MainGame.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
@@ -204,6 +208,9 @@
   <ItemGroup>
     <FxCompile Include="Shaders\BasicHeader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\color.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\ColorShader.hlsl">

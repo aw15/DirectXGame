@@ -76,7 +76,7 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="Object.cpp">
-      <Filter>Main</Filter>
+      <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -146,6 +146,9 @@
       <Filter>Shader</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\ColorShader.hlsl">
+      <Filter>Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\color.hlsl">
       <Filter>Shader</Filter>
     </FxCompile>
   </ItemGroup>

@@ -52,6 +52,9 @@ using namespace DirectX::PackedVector;
 
 #define ROOT_SIGNITURE_SLOT 5
 
+
+
+
 enum SORT
 {
 	player=0,

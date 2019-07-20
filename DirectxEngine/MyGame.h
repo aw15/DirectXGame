@@ -2,16 +2,12 @@
 #include"Common/d3dApp.h"
 #include"Object.h"
 #include"Common/MathHelper.h"
-#include"Common/UploadBuffer.h"
+#include"FrameResource.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
 using namespace DirectX::PackedVector;
 
-struct ObjectConstants
-{
-	XMFLOAT4X4 worldViewProj = MathHelper::Identity4x4();
-};
 
 
 class MyGame : public D3DApp
@@ -33,44 +29,61 @@ private:
 	virtual void OnMouseUp(WPARAM btnState, int x, int y)override;
 	virtual void OnMouseMove(WPARAM btnState, int x, int y)override;
 
+	void OnKeyboardInput(const GameTimer& gt);
+	void UpdateCamera(const GameTimer& gt);
+	void UpdateObjectCBs(const GameTimer& gt);
+	void UpdateMainPassCB(const GameTimer& gt);
+
 	void BuildDescriptorHeaps();
-	void BuildConstantBuffers();
+	void BuildConstantBufferViews();
 	void BuildRootSignature();
 	void BuildShadersAndInputLayout();
-	void BuildPSO();
-	void InitMeshData();
-	void InitObjects();
-
-	/////렌더링////////
-	void RenderObjects();
+	void BuildShapeGeometry();
+	void BuildPSOs();
+	void BuildFrameResources();
+	void BuildRenderItems();
+	void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<Object*>& ritems);
 
 private:
+
+	std::vector<std::unique_ptr<FrameResource>> mFrameResources;
+	FrameResource* mCurrFrameResource = nullptr;
+	int mCurrFrameResourceIndex = 0;
 
 	ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
 	ComPtr<ID3D12DescriptorHeap> mCbvHeap = nullptr;
 
-	std::unique_ptr<UploadBuffer<ObjectConstants>> mObjectCB = nullptr;
+	ComPtr<ID3D12DescriptorHeap> mSrvDescriptorHeap = nullptr;
 
-	std::unique_ptr<MeshGeometry> mBoxGeo = nullptr;
-
-	ComPtr<ID3DBlob> mvsByteCode = nullptr;
-	ComPtr<ID3DBlob> mpsByteCode = nullptr;
+	std::unordered_map<std::string, ComPtr<ID3DBlob>> mShaders;
+	std::unordered_map<std::string, ComPtr<ID3D12PipelineState>> mPSOs;
 
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 
-	ComPtr<ID3D12PipelineState> mPSO = nullptr;
+	// List of all the render items.
+	std::vector<Object*> mAllRitems;
 
-	XMFLOAT4X4 mWorld = MathHelper::Identity4x4();
+	// Render items divided by PSO.
+	std::vector<Object*> mOpaqueRitems;
+
+	PassConstants mMainPassCB;
+
+	UINT mPassCbvOffset = 0;
+
+	bool mIsWireframe = false;
+
+	XMFLOAT3 mEyePos = { 0.0f, 0.0f, 0.0f };
 	XMFLOAT4X4 mView = MathHelper::Identity4x4();
 	XMFLOAT4X4 mProj = MathHelper::Identity4x4();
 
 	float mTheta = 1.5f*XM_PI;
-	float mPhi = XM_PIDIV4;
-	float mRadius = 5.0f;
+	float mPhi = 0.2f*XM_PI;
+	float mRadius = 15.0f;
 
 	POINT mLastMousePos;
 
-	std::map<std::string, std::shared_ptr<Mesh>> meshContainer;
-	std::vector<std::shared_ptr<Object>> objects;
-};
+	//메시 저장
+	std::unordered_map<std::string, Mesh*> meshContainer;
 
+	UINT cbIndex = 0;
+};

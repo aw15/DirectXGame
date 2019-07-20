@@ -1,23 +1,31 @@
 #pragma once
-#include "Mesh.h"
-
+#include"Mesh.h"
 
 
 
 class Object
 {
 public:
-	Object(ID3D12Device* device, ID3D12GraphicsCommandList* commandList);
+	Object(ID3D12Device* device, ID3D12GraphicsCommandList* commandList,const UINT cbIndex);
 	~Object();
-	
-	void SetMesh(std::shared_ptr<Mesh> mesh);
+	//Mesh
+	void SetMeshName(const std::string& name);
+	std::string GetMeshName() const;
 
-	virtual void Draw();
+
+	virtual void Draw(const Mesh* mesh);
 	virtual void Updata(const GameTimer& gt);
 
+
+public:
+	UINT ObjCBIndex = 0;
+	int NumFramesDirty = gNumFrameResources;
+	XMFLOAT4X4 World = MathHelper::Identity4x4();
+
 private:
-	std::shared_ptr<Mesh> mesh;
 	ComPtr<ID3D12Device> device;
 	ComPtr<ID3D12GraphicsCommandList> commandList;
+	std::string meshName = "none";
+
 };
 

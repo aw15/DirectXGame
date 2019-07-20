@@ -1,6 +1,7 @@
 #include"stdafx.h"
 #include "MyGame.h"
 
+
 const int gNumFrameResources = 3;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,

@@ -4,8 +4,9 @@
 
 
 
-Object::Object(ID3D12Device * device, ID3D12GraphicsCommandList * commandList)
+Object::Object(ID3D12Device * device, ID3D12GraphicsCommandList * commandList, const UINT cbIndex)
 {
+	this->ObjCBIndex = cbIndex;
 	this->device = device;
 	this->commandList = commandList;
 }
@@ -14,12 +15,17 @@ Object::~Object()
 {
 }
 
-void Object::SetMesh(std::shared_ptr<Mesh> mesh)
+void Object::SetMeshName(const std::string& name)
 {
-	this->mesh = mesh;
+	meshName = name;
 }
 
-void Object::Draw()
+std::string Object::GetMeshName() const
+{
+	return meshName;
+}
+
+void Object::Draw(const Mesh* mesh)
 {
 	for (const auto& meshData : mesh->subMeshArr)
 	{
