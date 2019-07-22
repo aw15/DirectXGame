@@ -11,6 +11,11 @@ MyGame::~MyGame()
 {
 	if (md3dDevice != nullptr)
 		FlushCommandQueue();
+
+	for (auto& mesh : meshContainer)
+	{
+		delete mesh.second;
+	}
 }
 
 bool MyGame::Initialize()
@@ -28,10 +33,14 @@ bool MyGame::Initialize()
 
 	Object* object = new Object(md3dDevice.Get(), mCommandList.Get(), cbIndex++);
 	object->SetMeshName("Guard");
-
+	object->SetScale(0.05f, 0.05f, 0.05f);
 	mAllRitems.push_back(object);
 	mOpaqueRitems.push_back(mAllRitems[0]);
 
+
+	DefineAnimation();
+
+	
 	BuildRootSignature();
 	BuildShadersAndInputLayout();
 	BuildShapeGeometry();
@@ -40,6 +49,8 @@ bool MyGame::Initialize()
 	BuildDescriptorHeaps();
 	BuildConstantBufferViews();
 	BuildPSOs();
+
+
 
 	// Execute the initialization commands.
 	ThrowIfFailed(mCommandList->Close());
@@ -65,6 +76,18 @@ void MyGame::Update(const GameTimer& gt)
 {
 	OnKeyboardInput(gt);
 	UpdateCamera(gt);
+
+
+	mAnimTimePos += gt.DeltaTime();
+	if (mAnimTimePos >= mSkullAnimation.GetEndTime())
+	{
+		// Loop animation back to beginning.
+		mAnimTimePos = 0.0f;
+	}
+
+	mSkullAnimation.Interpolate(mAnimTimePos, mAllRitems[0]->world);
+//	mSkullRitem->World = mSkullWorld;
+	mAllRitems[0]->NumFramesDirty = gNumFrameResources;
 
 	// Cycle through the circular frame resource array.
 	mCurrFrameResourceIndex = (mCurrFrameResourceIndex + 1) % gNumFrameResources;
@@ -209,9 +232,9 @@ void MyGame::OnKeyboardInput(const GameTimer& gt)
 void MyGame::UpdateCamera(const GameTimer& gt)
 {
 	// Convert Spherical to Cartesian coordinates.
-	mEyePos.x = mRadius * sinf(mPhi)*cosf(mTheta);
-	mEyePos.z = mRadius * sinf(mPhi)*sinf(mTheta);
-	mEyePos.y = mRadius * cosf(mPhi);
+	//mEyePos.x = mRadius * sinf(mPhi)*cosf(mTheta);
+	//mEyePos.z = mRadius * sinf(mPhi)*sinf(mTheta);
+	//mEyePos.y = mRadius * cosf(mPhi);
 
 	// Build the view matrix.
 	XMVECTOR pos = XMVectorSet(mEyePos.x, mEyePos.y, mEyePos.z, 1.0f);
@@ -231,10 +254,8 @@ void MyGame::UpdateObjectCBs(const GameTimer& gt)
 		// This needs to be tracked per frame resource.
 		if (e->NumFramesDirty > 0)
 		{
-			XMMATRIX world = XMLoadFloat4x4(&e->World);
-
 			ObjectConstants objConstants;
-			XMStoreFloat4x4(&objConstants.world, XMMatrixTranspose(world));
+			XMStoreFloat4x4(&objConstants.world, XMMatrixTranspose(e->GetFinalTransform()));
 
 			currObjectCB->CopyData(e->ObjCBIndex, objConstants);
 
@@ -478,4 +499,42 @@ void MyGame::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vect
 		ri->Draw(mesh);
 		//cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
 	}
+}
+
+void MyGame::DefineAnimation()
+{
+	//
+  // Define the animation keyframes
+  //
+
+	XMVECTOR q0 = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(30.0f));
+	XMVECTOR q1 = XMQuaternionRotationAxis(XMVectorSet(1.0f, 1.0f, 2.0f, 0.0f), XMConvertToRadians(45.0f));
+	XMVECTOR q2 = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(-30.0f));
+	XMVECTOR q3 = XMQuaternionRotationAxis(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), XMConvertToRadians(70.0f));
+
+	mSkullAnimation.Keyframes.resize(5);
+	mSkullAnimation.Keyframes[0].TimePos = 0.0f;
+	mSkullAnimation.Keyframes[0].Translation = XMFLOAT3(-7.0f, 0.0f, 0.0f);
+	mSkullAnimation.Keyframes[0].Scale = XMFLOAT3(0.25f, 0.25f, 0.25f);
+	XMStoreFloat4(&mSkullAnimation.Keyframes[0].RotationQuat, q0);
+
+	mSkullAnimation.Keyframes[1].TimePos = 2.0f;
+	mSkullAnimation.Keyframes[1].Translation = XMFLOAT3(0.0f, 2.0f, 10.0f);
+	mSkullAnimation.Keyframes[1].Scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	XMStoreFloat4(&mSkullAnimation.Keyframes[1].RotationQuat, q1);
+
+	mSkullAnimation.Keyframes[2].TimePos = 4.0f;
+	mSkullAnimation.Keyframes[2].Translation = XMFLOAT3(7.0f, 0.0f, 0.0f);
+	mSkullAnimation.Keyframes[2].Scale = XMFLOAT3(0.25f, 0.25f, 0.25f);
+	XMStoreFloat4(&mSkullAnimation.Keyframes[2].RotationQuat, q2);
+
+	mSkullAnimation.Keyframes[3].TimePos = 6.0f;
+	mSkullAnimation.Keyframes[3].Translation = XMFLOAT3(0.0f, 1.0f, -10.0f);
+	mSkullAnimation.Keyframes[3].Scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	XMStoreFloat4(&mSkullAnimation.Keyframes[3].RotationQuat, q3);
+
+	mSkullAnimation.Keyframes[4].TimePos = 8.0f;
+	mSkullAnimation.Keyframes[4].Translation = XMFLOAT3(-7.0f, 0.0f, 0.0f);
+	mSkullAnimation.Keyframes[4].Scale = XMFLOAT3(0.25f, 0.25f, 0.25f);
+	XMStoreFloat4(&mSkullAnimation.Keyframes[4].RotationQuat, q0);
 }

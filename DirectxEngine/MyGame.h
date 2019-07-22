@@ -3,6 +3,7 @@
 #include"Object.h"
 #include"Common/MathHelper.h"
 #include"FrameResource.h"
+#include"animationHelper.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -16,7 +17,7 @@ public:
 	MyGame(HINSTANCE hInstance);
 	MyGame(const MyGame& rhs) = delete;
 	MyGame& operator=(const MyGame& rhs) = delete;
-	~MyGame();
+	virtual ~MyGame();
 
 	virtual bool Initialize()override;
 
@@ -43,6 +44,9 @@ private:
 	void BuildFrameResources();
 	void BuildRenderItems();
 	void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<Object*>& ritems);
+
+	//Animation
+	void DefineAnimation();
 
 private:
 
@@ -72,12 +76,12 @@ private:
 
 	bool mIsWireframe = false;
 
-	XMFLOAT3 mEyePos = { 0.0f, 0.0f, 0.0f };
+	XMFLOAT3 mEyePos = { 0.0f, 0.0f, -100.0f };
 	XMFLOAT4X4 mView = MathHelper::Identity4x4();
 	XMFLOAT4X4 mProj = MathHelper::Identity4x4();
 
 	float mTheta = 1.5f*XM_PI;
-	float mPhi = 0.2f*XM_PI;
+	float mPhi =  0.2f*XM_PI;
 	float mRadius = 15.0f;
 
 	POINT mLastMousePos;
@@ -86,4 +90,9 @@ private:
 	std::unordered_map<std::string, Mesh*> meshContainer;
 
 	UINT cbIndex = 0;
+
+	//Animation
+	float mAnimTimePos = 0.0f;
+	BoneAnimation mSkullAnimation;
+
 };

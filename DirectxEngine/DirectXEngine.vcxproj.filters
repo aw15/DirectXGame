@@ -72,11 +72,11 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>deprecated</Filter>
     </ClCompile>
-    <ClCompile Include="BoxApp.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="Object.cpp">
       <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="animationHelper.cpp">
+      <Filter>Main</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +129,9 @@
       <Filter>deprecated</Filter>
     </ClInclude>
     <ClInclude Include="Object.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="animationHelper.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>
