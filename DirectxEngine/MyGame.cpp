@@ -27,13 +27,13 @@ bool MyGame::Initialize()
 	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
 	Mesh* mesh = new Mesh();
-	mesh->LoadMeshData("Mesh/GuardB.fbxmesh",md3dDevice,mCommandList);
+	mesh->LoadMeshData("Mesh/Boxing.fbxmesh",md3dDevice,mCommandList);
 	meshContainer["Guard"] = mesh;
 	mesh->name = "Guard";
 
 	Object* object = new Object(md3dDevice.Get(), mCommandList.Get(), cbIndex++);
 	object->SetMeshName("Guard");
-	object->SetScale(0.05f, 0.05f, 0.05f);
+	object->SetScale(0.5f, 0.5f, 0.5f);
 	mAllRitems.push_back(object);
 	mOpaqueRitems.push_back(mAllRitems[0]);
 

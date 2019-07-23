@@ -55,6 +55,28 @@ struct Subset
 
 };
 
+
+struct Keyframe
+{
+	Keyframe() = default;
+	~Keyframe() = default;
+
+	float TimePos = 0.0f;
+	DirectX::XMFLOAT3 Translation{0.f,0.f,0.f};
+	DirectX::XMFLOAT3 Scale{ 0.f,0.f,0.f };
+	DirectX::XMFLOAT4 RotationQuat{ 0.f,0.f,0.f,0.f };
+};
+
+struct BoneAnimation
+{
+	std::vector<Keyframe> Keyframes;
+};
+
+struct AnimationClip
+{
+	std::vector<BoneAnimation> BoneAnimations;
+};
+
 //struct Keyframe
 //{
 //	Keyframe();

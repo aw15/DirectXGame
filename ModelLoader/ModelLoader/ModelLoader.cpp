@@ -66,6 +66,10 @@ void MakeBoneMapping(aiMesh* mesh);
 void ReadVertex(aiMesh* mesh);
 void ReadBoneDataPerVertexAndIndex(aiMesh* mesh, int index);
 void TravelNode(aiNode* node);
+void SortAndFillBoneData();
+//Animation
+void ReadAnimation(const aiScene* scene);
+void ReadChannel(aiNodeAnim* animNode, int index);
 
 vector<SkinnedVertex> verticies;
 vector<int> indices;
@@ -78,7 +82,9 @@ vector<int> boneHierarchy;
 
 std::vector<DirectX::XMFLOAT4X4> boneOffsets;
 
-//std::unordered_map<std::string, AnimationClip> mAnimations;
+AnimationClip animation;
+
+
 
 
 int main()
@@ -86,10 +92,12 @@ int main()
 	Assimp::Importer importer;
 	string fileName;
 	cin >> fileName;
+	fileName = "Model/" + fileName;
+	//fileName += "Model\\";
 	const aiScene *scene = importer.ReadFile(fileName, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
 
-
+	int sum = 0;
 	if (scene)
 	{
 		subsets.resize(scene->mNumMeshes);
@@ -107,10 +115,14 @@ int main()
 				subsets[i].baseVertex = 0;
 			}
 
+			sum += scene->mMeshes[i]->mNumBones;
+
 			MakeBoneMapping(scene->mMeshes[i]);
 			ReadVertex(scene->mMeshes[i]);
 		}
 
+
+	//	cout << sum << "  " << boneMapping.size();
 
 		for (int i = 0; i < scene->mNumMeshes; i++)
 		{
@@ -123,26 +135,22 @@ int main()
 
 		TravelNode(scene->mRootNode);//트리구조를 내려가며 뼈 계층구조를 만듬.
 
-		for (auto& data : verticies)
-		{
-			sort(data.boneData.begin(), data.boneData.end(), [](VertexBoneData& a, VertexBoneData& b)
-			{
-				return a.weight > b.weight;
-			});
-		}
+		SortAndFillBoneData();
+
+		ReadAnimation(scene);
 
 
-		ofstream out(fileName + "mesh",ios::trunc);
+		ofstream out(fileName + "mesh", ios::trunc);
 		out << "VertexSize: ";
-		out << verticies.size()<<endl;
+		out << verticies.size() << endl;
 		for (auto& data : verticies)
 		{
-			out << data.pos.x << " " << data.pos.y << " " << data.pos.z<<endl;
-			out << data.normal.x<<" "  << data.normal.y<<" "<< data.normal.z << endl;
+			out << data.pos.x << " " << data.pos.y << " " << data.pos.z << endl;
+			out << data.normal.x << " " << data.normal.y << " " << data.normal.z << endl;
 			out << data.uv.x << " " << data.uv.y << endl;
 		}
-		
-		out<<"IndexSize: " << indices.size() << endl;
+
+		out << "IndexSize: " << indices.size() << endl;
 		for (int data : indices)
 		{
 			out << data << endl;
@@ -163,34 +171,29 @@ int main()
 		//	cout  << data.second<<" ";
 		//	cout << boneHierarchy[data.second] << endl;
 		//}
-	
-
-		//for (auto& data : verticies)
-		//{
-		//	sort(data.boneData.begin(), data.boneData.end(), [](VertexBoneData& a, VertexBoneData& b)
-		//	{
-		//		return a.weight > b.weight;
-		//	});
 
 
-		//	cout << "boneIndice : ";
-		//	for (auto bone : data.boneData)
-		//	{
-		//		cout << bone.index << " ";
-		//	}
-		//	cout << "boneWeight : ";
-		//	for (auto bone : data.boneData)
-		//	{
-		//		cout << bone.weight << " ";
-		//	}
-		//	cout << endl;
-		//}
-	
+	//	for (auto& data : verticies)
+	//	{
+
+
+	//		cout << "boneIndice : ";
+	//		for (auto bone : data.boneData)
+	//		{
+	//			cout << bone.index << " ";
+	//		}
+	//		cout << "boneWeight : ";
+	//		for (auto bone : data.boneData)
+	//		{
+	//			cout << bone.weight << " ";
+	//		}
+	//		cout << endl;
+	//	}
+	//
+	//}
+
 	}
-
 }
-
-
 
 void MakeBoneMapping(aiMesh * mesh)
 {
@@ -198,8 +201,11 @@ void MakeBoneMapping(aiMesh * mesh)
 
 
 	boneOffsets.resize(boneMapping.size() + mesh->mNumBones);
+
+	
 	for (int i = 0; i < mesh->mNumBones; i++)
 	{
+		//cout << mesh->mBones[i]->mName.C_Str()<<endl;
 		if (boneMapping.find(mesh->mBones[i]->mName.C_Str()) == boneMapping.end())
 		{
 			boneOffsets[boneMapping.size()] = ToXMFloatArray( mesh->mBones[i]->mOffsetMatrix );
@@ -257,6 +263,53 @@ void TravelNode(aiNode* node)
 	}
 }
 
+void SortAndFillBoneData()
+{
+	for (auto& data : verticies)
+	{
+		sort(data.boneData.begin(), data.boneData.end(), [](VertexBoneData& a, VertexBoneData& b)
+		{
+			return a.weight > b.weight;
+		});
+		while (data.boneData.size() < 4)
+		{
+			data.boneData.push_back({ 0,0.0f });
+		}
+	}
+
+}
+
+void ReadAnimation(const aiScene* scene)
+{
+	int animCount = scene->mNumAnimations;
+	auto animArray = scene->mAnimations;
+	for (int i = 0; i < animCount; ++i)
+	{
+		auto anim = animArray[i];
+		cout << anim->mName.C_Str() << endl;
+
+		auto channels = anim->mChannels;
+		
+		animation.BoneAnimations.resize(anim->mNumChannels);
+
+		for (int j = 0; j < anim->mNumChannels; ++j)
+		{
+			//cout << channels[j]->mNodeName.C_Str()<<endl;
+			ReadChannel(channels[j],j);
+		}
+	}
+}
+
+void ReadChannel(aiNodeAnim * animNode, int index)
+{
+	//if (boneMapping.find(animNode->mNodeName.C_Str()) == boneMapping.end())
+	//{
+	//	cout << "Not find" << endl;
+	//}
+	//int boneIndex = boneMapping[animNode->mNodeName.C_Str()];
+	//cout << animNode->mNodeName.C_Str() << endl;
+}
+
 
 
 void ReadBoneDataPerVertexAndIndex(aiMesh* mesh, int index)
@@ -269,6 +322,10 @@ void ReadBoneDataPerVertexAndIndex(aiMesh* mesh, int index)
 
 			if (vertexIndex >= 0)
 			{
+				if (boneMapping.find(mesh->mBones[i]->mName.C_Str()) == boneMapping.end())
+				{
+					cout << "NotFind" << endl;
+				}
 				verticies[vertexIndex].boneData.push_back({ boneMapping[mesh->mBones[i]->mName.C_Str()] ,mesh->mBones[i]->mWeights[j].mWeight });
 				//verticies[vertexIndex].BoneWeights.push_back(mesh->mBones[i]->mWeights[j].mWeight);
 				//verticies[vertexIndex].BoneIndices.push_back(boneMapping[mesh->mBones[i]->mName.C_Str()]);
