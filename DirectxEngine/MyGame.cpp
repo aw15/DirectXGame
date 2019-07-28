@@ -27,7 +27,7 @@ bool MyGame::Initialize()
 	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
 	Mesh* mesh = new Mesh();
-	mesh->LoadMeshData("Mesh/Boxing.fbxmesh",md3dDevice,mCommandList);
+	mesh->LoadMeshData("Model/Boxing.fbxmesh",md3dDevice,mCommandList);
 	meshContainer["Guard"] = mesh;
 	mesh->name = "Guard";
 

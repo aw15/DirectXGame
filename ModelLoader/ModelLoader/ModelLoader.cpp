@@ -5,13 +5,23 @@
 #include<fstream>
 
 
-// TODO: 여기에 미리 컴파일하려는 헤더 추가
 DirectX::XMFLOAT3 ToXMFloat(aiVector3D& from)
 {
 	XMFLOAT3 temp;
 	temp.x = from.x;
 	temp.y = from.y;
 	temp.z = from.z;
+
+	return temp;
+}
+
+DirectX::XMFLOAT4 ToXMFloat(aiQuaternion& from)
+{
+	XMFLOAT4 temp;
+	temp.x = from.x;
+	temp.y = from.y;
+	temp.z = from.z;
+	temp.w = from.w;
 
 	return temp;
 }
@@ -34,6 +44,8 @@ DirectX::XMFLOAT2 ToXMFloat2(aiVector3D& from)
 
 	return temp;
 }
+
+
 
 XMFLOAT4X4 ToXMFloatArray(aiMatrix4x4& matrix)
 {
@@ -78,21 +90,19 @@ vector<Subset> subsets;
 unordered_map<string, int> boneMapping;
 
 
-vector<int> boneHierarchy;
-
 std::vector<DirectX::XMFLOAT4X4> boneOffsets;
 
-AnimationClip animation;
 
-
+SkinnedData animationData;
 
 
 int main()
 {
 	Assimp::Importer importer;
 	string fileName;
-	cin >> fileName;
-	fileName = "Model/" + fileName;
+	//cin >> fileName;
+	fileName = "Model/";
+	fileName += "Boxing_Anim.fbx";
 	//fileName += "Model\\";
 	const aiScene *scene = importer.ReadFile(fileName, aiProcess_Triangulate | aiProcess_ConvertToLeftHanded);
 
@@ -130,13 +140,14 @@ int main()
 		}
 
 
-
-		boneHierarchy.resize(boneMapping.size());
+		animationData.mBoneHierarchy.resize(boneMapping.size());
+		animationData.mBoneOffsets.resize(boneMapping.size());
 
 		TravelNode(scene->mRootNode);//트리구조를 내려가며 뼈 계층구조를 만듬.
 
 		SortAndFillBoneData();
 
+		animationData.mAnimations.BoneAnimations.resize(boneMapping.size());
 		ReadAnimation(scene);
 
 
@@ -157,19 +168,97 @@ int main()
 		}
 		out.close();
 
-		//for (int i=0;i<indices.size();i+=3)
-		//{
-		//	verticies[indices[i]].PrintPos();
-		//	verticies[indices[i+1]].PrintPos();
-		//	verticies[indices[i+2]].PrintPos();
-		//	cout << endl;
-		//}
+
+		out.open(fileName + "anim", ios::trunc);
+		out << "BoneCount: " << animationData.mBoneHierarchy.size() << endl;
+		out << "BoneHierarchy:"<<endl;
+		for (int i = 0; i < animationData.mBoneHierarchy.size(); i++)
+		{
+			out << i <<" "<< animationData.mBoneHierarchy[i]<<endl;
+		}
+		
+		out << "BoneOffset:"<<endl;
+		for (auto& arr : animationData.mBoneOffsets)
+		{
+			out << arr._11 << " " << arr._12 << " " << arr._13 << " " << arr._14 << endl;
+			out << arr._21 << " " << arr._22 << " " << arr._23 << " " << arr._24 << endl;
+			out << arr._31 << " " << arr._32 << " " << arr._33 << " " << arr._34 << endl;
+			out << arr._41 << " " << arr._42 << " " << arr._43 << " " << arr._44 << endl;
+		}
+
+		out << "Animation:"<<endl;
+		for (auto& bone : animationData.mAnimations.BoneAnimations)
+		{
+			out << bone.Keyframes.size() << endl;
+			for (auto key : bone.Keyframes)
+			{
+				out << key.Translation.x << " " << key.Translation.y << " " << key.Translation.z << endl;
+				out << key.RotationQuat.x << " " << key.RotationQuat.y << " " << key.RotationQuat.z << " "<< key.RotationQuat.w << endl;
+				out << key.Scale.x << " " << key.Scale.y << " " << key.Scale.z << endl;
+				out << key.TimePos << endl;
+			}
+			out << "====================================================" << endl;
+		}
+		out.close();
+
+		ifstream in(fileName + "anim");
+		int a, b;
+		int boneCount;
+		string temp, ignore;
+		in >> ignore;
+		in >> boneCount;
+
+		
+		in >> ignore;
+		cout << ignore <<endl;
+
+
+		for (int i = 0; i < animationData.mBoneHierarchy.size(); i++)
+		{
+			in >> a >> b;
+			cout << a <<" "<< b<<endl;
+		}
+
+		in >> ignore;
+		XMFLOAT4X4 arr;
+		for (int i=0;i<boneCount;i++)
+		{
+			cout << i << endl;
+			in >> arr._11 >> arr._12 >> arr._13 >> arr._14 ;
+			in >> arr._21 >> arr._22 >> arr._23 >> arr._24 ;
+			in >> arr._31 >> arr._32 >> arr._33 >> arr._34 ;
+			in >> arr._41 >> arr._42 >> arr._43 >> arr._44 ;
+			Print(arr);
+			cout << "====================================================" << endl;
+		}
+
+		in >> ignore;
+		for (int i = 0; i < boneCount; i++)
+		{
+			int keyCount;
+			in >> keyCount;
+
+			Keyframe key;
+			for (int j = 0; j < keyCount; j++)
+			{
+				in >> key.Translation.x  >> key.Translation.y >> key.Translation.z;
+				in >> key.RotationQuat.x >> key.RotationQuat.y >> key.RotationQuat.z>> key.RotationQuat.w;
+				in >> key.Scale.x >> key.Scale.y >> key.Scale.z;
+				in >> key.TimePos;
+			}
+			in >> ignore;
+		}
+
+
+
+
+		in.close();
 
 		//for (auto& data : boneMapping)
 		//{
 		//	cout << data.first<<" ";
 		//	cout  << data.second<<" ";
-		//	cout << boneHierarchy[data.second] << endl;
+		//	cout << animationData.mBoneHierarchy[data.second] << endl;
 		//}
 
 
@@ -246,13 +335,15 @@ void TravelNode(aiNode* node)
 {
 	if (node->mParent && boneMapping.find(node->mName.C_Str()) != boneMapping.end())
 	{
+		animationData.mBoneOffsets[boneMapping[node->mName.C_Str()]] = boneOffsets[boneMapping[node->mName.C_Str()]];
+
 		if (boneMapping.find(node->mParent->mName.C_Str()) != boneMapping.end())
 		{
-			boneHierarchy[boneMapping[node->mName.C_Str()]] = boneMapping[node->mParent->mName.C_Str()];
+			animationData.mBoneHierarchy[boneMapping[node->mName.C_Str()]] = boneMapping[node->mParent->mName.C_Str()];
 		}
 		else
 		{
-			boneHierarchy[boneMapping[node->mName.C_Str()]] = -1;
+			animationData.mBoneHierarchy[boneMapping[node->mName.C_Str()]] = -1;
 		}
 	}
 	
@@ -286,15 +377,12 @@ void ReadAnimation(const aiScene* scene)
 	for (int i = 0; i < animCount; ++i)
 	{
 		auto anim = animArray[i];
-		cout << anim->mName.C_Str() << endl;
 
 		auto channels = anim->mChannels;
 		
-		animation.BoneAnimations.resize(anim->mNumChannels);
 
 		for (int j = 0; j < anim->mNumChannels; ++j)
 		{
-			//cout << channels[j]->mNodeName.C_Str()<<endl;
 			ReadChannel(channels[j],j);
 		}
 	}
@@ -302,12 +390,25 @@ void ReadAnimation(const aiScene* scene)
 
 void ReadChannel(aiNodeAnim * animNode, int index)
 {
-	//if (boneMapping.find(animNode->mNodeName.C_Str()) == boneMapping.end())
-	//{
-	//	cout << "Not find" << endl;
-	//}
-	//int boneIndex = boneMapping[animNode->mNodeName.C_Str()];
-	//cout << animNode->mNodeName.C_Str() << endl;
+	if (boneMapping.find(animNode->mNodeName.C_Str()) != boneMapping.end())
+	{
+		int boneIndex = boneMapping[animNode->mNodeName.C_Str()];
+		Keyframe frame;
+		for (int i = 0; i < animNode->mNumPositionKeys; ++i)
+		{
+			frame.Translation = ToXMFloat(animNode->mPositionKeys[i].mValue);
+			frame.Scale = ToXMFloat(animNode->mScalingKeys[i].mValue);
+			frame.RotationQuat = ToXMFloat(animNode->mRotationKeys[i].mValue);
+
+
+			frame.TimePos = animNode->mPositionKeys[i].mTime;
+
+			animationData.mAnimations.BoneAnimations[boneIndex].Keyframes.push_back(frame);
+		}
+	}
+
+
+
 }
 
 

@@ -77,38 +77,6 @@ struct AnimationClip
 	std::vector<BoneAnimation> BoneAnimations;
 };
 
-//struct Keyframe
-//{
-//	Keyframe();
-//	~Keyframe();
-//
-//	float TimePos;
-//	DirectX::XMFLOAT3 Translation;
-//	DirectX::XMFLOAT3 Scale;
-//	DirectX::XMFLOAT4 RotationQuat;
-//};
-//
-//struct BoneAnimation
-//{
-//	float GetStartTime()const;
-//	float GetEndTime()const;
-//
-//	void Interpolate(float t, DirectX::XMFLOAT4X4& M)const;
-//
-//	std::vector<Keyframe> Keyframes;
-//};
-//
-//
-//struct AnimationClip
-//{
-//	float GetClipStartTime()const;
-//	float GetClipEndTime()const;
-//
-//	void Interpolate(float t, std::vector<DirectX::XMFLOAT4X4>& boneTransforms)const;
-//
-//	std::vector<BoneAnimation> BoneAnimations;
-//};
-
 
 struct Mesh
 {
@@ -117,5 +85,16 @@ struct Mesh
 };
 
 
+
+class SkinnedData
+{
+public:
+	// Gives parentIndex of ith bone.
+	std::vector<int> mBoneHierarchy;
+
+	std::vector<DirectX::XMFLOAT4X4> mBoneOffsets;
+
+	AnimationClip mAnimations;
+};
 
 #endif //PCH_H

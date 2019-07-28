@@ -76,7 +76,7 @@
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="animationHelper.cpp">
-      <Filter>Main</Filter>
+      <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
