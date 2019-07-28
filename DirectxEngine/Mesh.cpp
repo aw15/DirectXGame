@@ -79,6 +79,11 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 	subMeshArr.push_back(submesh);
 }
 
+bool Mesh::LoadAnimData(char * path)
+{
+	return false;
+}
+
 D3D12_VERTEX_BUFFER_VIEW Mesh::VertexBufferView() const
 {
 	D3D12_VERTEX_BUFFER_VIEW vbv;

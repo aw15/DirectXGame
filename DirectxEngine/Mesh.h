@@ -26,6 +26,7 @@ public:
 	Mesh();
 	~Mesh();
 	bool LoadMeshData(char* path, ComPtr<ID3D12Device> device, ComPtr<ID3D12GraphicsCommandList> commandList);
+	bool LoadAnimData(char* path);
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView() const;
 	D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
@@ -48,6 +49,7 @@ public:
 	UINT vertexBufferByteSize=0;
 	DXGI_FORMAT indexFormat = DXGI_FORMAT_R16_UINT;
 	UINT indexBufferByteSize =0;
+	D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	std::vector<SubMesh> subMeshArr;
 };
