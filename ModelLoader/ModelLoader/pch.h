@@ -38,8 +38,6 @@ struct SkinnedVertex
 	DirectX::XMFLOAT2 uv;
 	DirectX::XMFLOAT3 tangentU = { 0,0,0 };
 	vector<VertexBoneData> boneData;
-	vector<float> BoneWeights;
-	vector<int> BoneIndices;
 
 
 	void PrintPos()

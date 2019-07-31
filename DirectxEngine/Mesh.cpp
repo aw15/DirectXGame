@@ -2,6 +2,18 @@
 #include "Mesh.h"
 
 
+void Print(const XMFLOAT4X4& mat)
+{
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0; j < 4; j++)
+		{
+			printf("%5.1f ", mat.m[i][j]);
+		}
+		std::cout << std::endl;
+	}
+}
+
 Mesh::Mesh()
 {
 }
@@ -21,8 +33,8 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 
 	in >> ignore >> size;
 
-	ColorVertex temp;
-	std::vector<ColorVertex> vertices;
+	AnimVertex temp;
+	std::vector<AnimVertex> vertices;
 	vertices.reserve(size);
 
 	for (int i = 0; i < size; i++)
@@ -30,8 +42,12 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 		in >> temp.Pos.x >> temp.Pos.y >> temp.Pos.z;
 		in >> ignore >> ignore >> ignore;
 		in >> ignore >> ignore;
+		in >> temp.BoneIndices[0] >> temp.BoneIndices[1] >> temp.BoneIndices[2] >> temp.BoneIndices[3];
+	//	std::cout << temp.BoneIndices[0] <<" "<< temp.BoneIndices[1] << " " << temp.BoneIndices[2] << " " << temp.BoneIndices[3]<<std::endl;
+		in >> temp.BoneWeights.x >> temp.BoneWeights.y >> temp.BoneWeights.z;
+		//std::cout << temp.BoneWeights.x << " " << temp.BoneWeights.y << " " << temp.BoneWeights.z << std::endl;
 
-		temp.Color = { 0.3, 1, 1 ,1};
+		temp.Color = { 0.3f, 1.f, 1.f ,1.f};
 		vertices.push_back(temp);
 	}
 
@@ -50,7 +66,7 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 
 	in.close();
 
-	const UINT vbByteSize = (UINT)vertices.size() * sizeof(ColorVertex);
+	const UINT vbByteSize = (UINT)vertices.size() * sizeof(AnimVertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint16_t);
 
 
@@ -66,7 +82,7 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 	indexBufferGPU = d3dUtil::CreateDefaultBuffer(device.Get(),
 		commandList.Get(), indices.data(), ibByteSize,indexBufferUploader);
 
-	vertexByteStride = sizeof(ColorVertex);
+	vertexByteStride = sizeof(AnimVertex);
 	vertexBufferByteSize = vbByteSize;
 	indexFormat = DXGI_FORMAT_R16_UINT;
 	indexBufferByteSize = ibByteSize;
@@ -81,6 +97,75 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 
 bool Mesh::LoadAnimData(char * path)
 {
+	std::ifstream in(path);
+
+	std::string ignore;
+	int boneCount;
+	in >> ignore;
+	in >> boneCount;
+	in >> ignore;
+	
+	animationData.mBoneHierarchy.resize(boneCount);
+	//BoneHierarchy Get
+	int me, parent;
+	for (int i = 0; i < boneCount; ++i)
+	{
+		in >> me >> parent;
+		animationData.mBoneHierarchy[me] = parent;
+	}
+
+	in >> ignore;
+	animationData.mBoneOffsets.resize(boneCount);
+	//Offset Matrix Get
+	XMFLOAT4X4 matrix;
+	for (int i = 0; i < boneCount; ++i)
+	{
+		in >> matrix._11 >> matrix._12 >> matrix._13 >> matrix._14;
+		in >> matrix._21 >> matrix._22 >> matrix._23 >> matrix._24;
+		in >> matrix._31 >> matrix._32 >> matrix._33 >> matrix._34;
+		in >> matrix._41 >> matrix._42 >> matrix._43 >> matrix._44;
+		//Print(matrix);
+		animationData.mBoneOffsets[i] = matrix;
+	}
+	int animationLen;
+
+	XMFLOAT3 translation;
+	XMFLOAT4 rotation;
+	XMFLOAT3 scale;
+	float time;
+
+	AnimationClip clip;
+	clip.BoneAnimations.resize(boneCount);
+	
+
+	for (int i = 0; i < boneCount; ++i)
+	{
+		in >> ignore;
+	//	std::cout << ignore << std::endl;
+		in >> animationLen;
+		clip.BoneAnimations[i].Keyframes.resize(animationLen);
+		for (int j = 0; j < animationLen; ++j)
+		{
+			in >> translation.x >> translation.y >> translation.z;
+			in >> rotation.x >> rotation.y >> rotation.z>> rotation.w;
+			in >> scale.x >> scale.y >> scale.z;
+			in >> time;
+			//std::cout << time<<std::endl;
+
+			clip.BoneAnimations[i].Keyframes[j].Translation = translation;
+			clip.BoneAnimations[i].Keyframes[j].RotationQuat = rotation;
+			clip.BoneAnimations[i].Keyframes[j].Scale = scale;
+			clip.BoneAnimations[i].Keyframes[j].TimePos = time;
+		}
+	}
+
+	in.close();
+
+
+	animationData.mAnimations["default"] = clip;
+
+	//std::cout << animationData.mAnimations["default"].BoneAnimations[0].Keyframes[12].TimePos << std::endl;
+
 	return false;
 }
 

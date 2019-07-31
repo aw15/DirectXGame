@@ -159,6 +159,9 @@ int main()
 			out << data.pos.x << " " << data.pos.y << " " << data.pos.z << endl;
 			out << data.normal.x << " " << data.normal.y << " " << data.normal.z << endl;
 			out << data.uv.x << " " << data.uv.y << endl;
+
+			out << data.boneData[0].index << " " << data.boneData[1].index << " " << data.boneData[2].index << " " << data.boneData[3].index << endl;
+			out << data.boneData[0].weight << " " << data.boneData[1].weight << " " << data.boneData[2].weight << endl;
 		}
 
 		out << "IndexSize: " << indices.size() << endl;

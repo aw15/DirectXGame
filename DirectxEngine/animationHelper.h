@@ -67,8 +67,7 @@ public:
 	// the same timePos.
 	void GetFinalTransforms(const std::string& clipName, float timePos,
 		std::vector<DirectX::XMFLOAT4X4>& finalTransforms)const;
-
-private:
+public:
 	// Gives parentIndex of ith bone.
 	std::vector<int> mBoneHierarchy;
 

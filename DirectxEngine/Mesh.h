@@ -1,5 +1,5 @@
 #pragma once
-
+#include"animationHelper.h"
 
 
 
@@ -7,6 +7,14 @@ struct ColorVertex
 {
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
+};
+
+struct AnimVertex
+{
+	XMFLOAT3 Pos;
+	XMFLOAT4 Color;
+	DirectX::XMFLOAT3 BoneWeights;
+	UINT BoneIndices[4];
 };
 
 
@@ -52,5 +60,7 @@ public:
 	D3D12_PRIMITIVE_TOPOLOGY PrimitiveType = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 	std::vector<SubMesh> subMeshArr;
+
+	SkinnedData animationData;
 };
 

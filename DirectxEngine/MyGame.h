@@ -3,7 +3,7 @@
 #include"Object.h"
 #include"Common/MathHelper.h"
 #include"FrameResource.h"
-#include"animationHelper.h"
+
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
