@@ -14,7 +14,7 @@ struct AnimVertex
 	XMFLOAT3 Pos;
 	XMFLOAT4 Color;
 	DirectX::XMFLOAT3 BoneWeights;
-	UINT BoneIndices[4];
+	BYTE BoneIndices[4];
 };
 
 

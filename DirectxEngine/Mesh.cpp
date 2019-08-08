@@ -36,15 +36,18 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 	AnimVertex temp;
 	std::vector<AnimVertex> vertices;
 	vertices.reserve(size);
+	
+	float floatIgnore;
 
 	for (int i = 0; i < size; i++)
 	{
-		in >> temp.Pos.x >> temp.Pos.y >> temp.Pos.z;
-		in >> ignore >> ignore >> ignore;
-		in >> ignore >> ignore;
-		in >> temp.BoneIndices[0] >> temp.BoneIndices[1] >> temp.BoneIndices[2] >> temp.BoneIndices[3];
+		in >> temp.Pos.x >> temp.Pos.y >> temp.Pos.z>> floatIgnore;
+	//	std::cout<< temp.Pos.x <<" " <<temp.Pos.y <<" "<< temp.Pos.z <<" "<< floatIgnore<<" "<<std::endl;
+	//	in >> ignore >> ignore >> ignore;
+	//	in >> ignore >> ignore;
+	//	in >> temp.BoneIndices[0] >> temp.BoneIndices[1] >> temp.BoneIndices[2] >> temp.BoneIndices[3];
 	//	std::cout << temp.BoneIndices[0] <<" "<< temp.BoneIndices[1] << " " << temp.BoneIndices[2] << " " << temp.BoneIndices[3]<<std::endl;
-		in >> temp.BoneWeights.x >> temp.BoneWeights.y >> temp.BoneWeights.z;
+	//	in >> temp.BoneWeights.x >> temp.BoneWeights.y >> temp.BoneWeights.z;
 		//std::cout << temp.BoneWeights.x << " " << temp.BoneWeights.y << " " << temp.BoneWeights.z << std::endl;
 
 		temp.Color = { 0.3f, 1.f, 1.f ,1.f};

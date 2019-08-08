@@ -328,3 +328,5 @@ __pycache__/
 
 /ModelLoader/ModelLoader/Model/*.fbxanim
 /ModelLoader/ModelLoader/Model/*.fbxmesh
+/ModelLoaderFBXSDK/ModelLoaderFBXSDK/model/*.fbxmesh
+/ModelLoaderFBXSDK/ModelLoaderFBXSDK/model/*.mesh

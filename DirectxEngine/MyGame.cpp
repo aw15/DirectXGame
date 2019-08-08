@@ -27,7 +27,7 @@ bool MyGame::Initialize()
 	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
 	Mesh* mesh = new Mesh();
-	mesh->LoadMeshData("Model/Boxing_anim.fbxmesh",md3dDevice,mCommandList);
+	mesh->LoadMeshData("Model/vanguard.mesh",md3dDevice,mCommandList);
 	mesh->LoadAnimData("Model/Boxing_anim.fbxanim");
 	meshContainer["Guard"] = mesh;
 	mesh->name = "Guard";
@@ -426,8 +426,8 @@ void MyGame::BuildShadersAndInputLayout()
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 44, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "BONEINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+		{ "WEIGHTS", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "BONEINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, 40, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 }
 
