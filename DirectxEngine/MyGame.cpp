@@ -33,13 +33,12 @@ bool MyGame::Initialize()
 	mesh->name = "Guard";
 
 	Object* object = new Object(md3dDevice.Get(), mCommandList.Get(), cbIndex++);
-	object->SetMeshName("Guard");
+	object->SetMesh("Guard", meshContainer["Guard"]->animationData.BoneCount());
 	object->SetScale(0.5f, 0.5f, 0.5f);
+	object->SetPosition(0, -50, 0);
 	mAllRitems.push_back(object);
 	mOpaqueRitems.push_back(mAllRitems[0]);
 
-
-	DefineAnimation();
 
 	
 	BuildRootSignature();
@@ -71,41 +70,6 @@ void MyGame::OnResize()
 	// The window resized, so update the aspect ratio and recompute the projection matrix.
 	XMMATRIX P = XMMatrixPerspectiveFovLH(0.25f*MathHelper::Pi, AspectRatio(), 1.0f, 1000.0f);
 	XMStoreFloat4x4(&mProj, P);
-}
-
-void MyGame::Update(const GameTimer& gt)
-{
-	OnKeyboardInput(gt);
-	UpdateCamera(gt);
-
-
-	mAnimTimePos += gt.DeltaTime();
-	if (mAnimTimePos >= mSkullAnimation.GetEndTime())
-	{
-		// Loop animation back to beginning.
-		mAnimTimePos = 0.0f;
-	}
-
-	mSkullAnimation.Interpolate(mAnimTimePos, mAllRitems[0]->world);
-//	mSkullRitem->World = mSkullWorld;
-	mAllRitems[0]->NumFramesDirty = gNumFrameResources;
-
-	// Cycle through the circular frame resource array.
-	mCurrFrameResourceIndex = (mCurrFrameResourceIndex + 1) % gNumFrameResources;
-	mCurrFrameResource = mFrameResources[mCurrFrameResourceIndex].get();
-
-	// Has the GPU finished processing the commands of the current frame resource?
-	// If not, wait until the GPU has completed commands up to this fence point.
-	if (mCurrFrameResource->Fence != 0 && mFence->GetCompletedValue() < mCurrFrameResource->Fence)
-	{
-		HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
-		ThrowIfFailed(mFence->SetEventOnCompletion(mCurrFrameResource->Fence, eventHandle));
-		WaitForSingleObject(eventHandle, INFINITE);
-		CloseHandle(eventHandle);
-	}
-
-	UpdateObjectCBs(gt);
-	UpdateMainPassCB(gt);
 }
 
 void MyGame::Draw(const GameTimer& gt)
@@ -146,10 +110,7 @@ void MyGame::Draw(const GameTimer& gt)
 
 	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
 
-	//int passCbvIndex = mPassCbvOffset + mCurrFrameResourceIndex;
-	//auto passCbvHandle = CD3DX12_GPU_DESCRIPTOR_HANDLE(mCbvHeap->GetGPUDescriptorHandleForHeapStart());
-	//passCbvHandle.Offset(passCbvIndex, mCbvSrvUavDescriptorSize);
-	//mCommandList->SetGraphicsRootDescriptorTable(2, passCbvHandle);
+
 
 	auto passCB = mCurrFrameResource->PassCB->Resource();
 	mCommandList->SetGraphicsRootConstantBufferView(2, passCB->GetGPUVirtualAddress());
@@ -225,13 +186,54 @@ void MyGame::OnMouseMove(WPARAM btnState, int x, int y)
 	mLastMousePos.y = y;
 }
 
-void MyGame::OnKeyboardInput(const GameTimer& gt)
+void MyGame::OnKeyboardDown(WPARAM key)
 {
-	if (GetAsyncKeyState('1') & 0x8000)
-		mIsWireframe = true;
-	else
-		mIsWireframe = false;
+	switch (key)
+	{
+	case 'A':
+		mAllRitems[0]->Translation(-1, 0, 0);
+		break;
+	case 'D':
+		mAllRitems[0]->Translation(1, 0, 0);
+		break;
+	case 'W':
+		mAllRitems[0]->Translation(0, 1, 0);
+		break;
+	case 'S':
+		mAllRitems[0]->Translation(0, -1, 0);
+		break;
+	}
 }
+
+void MyGame::OnKeyboardUp(WPARAM key)
+{
+}
+
+void MyGame::Update(const GameTimer& gt)
+{
+	UpdateCamera(gt);
+
+	mAllRitems[0]->NumFramesDirty = gNumFrameResources;
+
+	// Cycle through the circular frame resource array.
+	mCurrFrameResourceIndex = (mCurrFrameResourceIndex + 1) % gNumFrameResources;
+	mCurrFrameResource = mFrameResources[mCurrFrameResourceIndex].get();
+
+	// Has the GPU finished processing the commands of the current frame resource?
+	// If not, wait until the GPU has completed commands up to this fence point.
+	if (mCurrFrameResource->Fence != 0 && mFence->GetCompletedValue() < mCurrFrameResource->Fence)
+	{
+		HANDLE eventHandle = CreateEventEx(nullptr, false, false, EVENT_ALL_ACCESS);
+		ThrowIfFailed(mFence->SetEventOnCompletion(mCurrFrameResource->Fence, eventHandle));
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
+
+	UpdateObjectCBs(gt);
+	UpdateMainPassCB(gt);
+	UpdateSkinnedCBs(gt);
+}
+
 
 void MyGame::UpdateCamera(const GameTimer& gt)
 {
@@ -295,6 +297,26 @@ void MyGame::UpdateMainPassCB(const GameTimer& gt)
 
 	auto currPassCB = mCurrFrameResource->PassCB.get();
 	currPassCB->CopyData(0, mMainPassCB);
+}
+
+void MyGame::UpdateSkinnedCBs(const GameTimer & gt)
+{
+	auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();
+
+	// We only have one skinned model being animated.
+	auto mesh = meshContainer[mAllRitems[0]->GetMesh()];
+	mAllRitems[0]->UpdateAnimation(mesh, gt.DeltaTime());
+
+
+
+
+	SkinnedConstants skinnedConstants;
+	std::copy(
+		std::begin(mAllRitems[0]->animationFinalTransforms),
+		std::end(mAllRitems[0]->animationFinalTransforms),
+		&skinnedConstants.BoneTransforms[0]);
+
+	currSkinnedCB->CopyData(0, skinnedConstants);
 }
 
 void MyGame::BuildDescriptorHeaps()
@@ -504,7 +526,7 @@ void MyGame::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vect
 	for (size_t i = 0; i < ritems.size(); ++i)
 	{
 		auto ri = ritems[i];
-		auto mesh = meshContainer[ri->GetMeshName()];
+		auto mesh = meshContainer[ri->GetMesh()];
 
 		cmdList->IASetVertexBuffers(0, 1, &mesh->VertexBufferView());
 		cmdList->IASetIndexBuffer(&mesh->IndexBufferView());
@@ -519,42 +541,4 @@ void MyGame::DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vect
 		ri->Draw(mesh);
 		//cmdList->DrawIndexedInstanced(ri->IndexCount, 1, ri->StartIndexLocation, ri->BaseVertexLocation, 0);
 	}
-}
-
-void MyGame::DefineAnimation()
-{
-	//
-  // Define the animation keyframes
-  //
-
-	XMVECTOR q0 = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(30.0f));
-	XMVECTOR q1 = XMQuaternionRotationAxis(XMVectorSet(1.0f, 1.0f, 2.0f, 0.0f), XMConvertToRadians(45.0f));
-	XMVECTOR q2 = XMQuaternionRotationAxis(XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), XMConvertToRadians(-30.0f));
-	XMVECTOR q3 = XMQuaternionRotationAxis(XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f), XMConvertToRadians(70.0f));
-
-	mSkullAnimation.Keyframes.resize(5);
-	mSkullAnimation.Keyframes[0].TimePos = 0.0f;
-	mSkullAnimation.Keyframes[0].Translation = XMFLOAT3(-7.0f, 0.0f, 0.0f);
-	mSkullAnimation.Keyframes[0].Scale = XMFLOAT3(0.25f, 0.25f, 0.25f);
-	XMStoreFloat4(&mSkullAnimation.Keyframes[0].RotationQuat, q0);
-
-	mSkullAnimation.Keyframes[1].TimePos = 2.0f;
-	mSkullAnimation.Keyframes[1].Translation = XMFLOAT3(0.0f, 2.0f, 10.0f);
-	mSkullAnimation.Keyframes[1].Scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	XMStoreFloat4(&mSkullAnimation.Keyframes[1].RotationQuat, q1);
-
-	mSkullAnimation.Keyframes[2].TimePos = 4.0f;
-	mSkullAnimation.Keyframes[2].Translation = XMFLOAT3(7.0f, 0.0f, 0.0f);
-	mSkullAnimation.Keyframes[2].Scale = XMFLOAT3(0.25f, 0.25f, 0.25f);
-	XMStoreFloat4(&mSkullAnimation.Keyframes[2].RotationQuat, q2);
-
-	mSkullAnimation.Keyframes[3].TimePos = 6.0f;
-	mSkullAnimation.Keyframes[3].Translation = XMFLOAT3(0.0f, 1.0f, -10.0f);
-	mSkullAnimation.Keyframes[3].Scale = XMFLOAT3(0.5f, 0.5f, 0.5f);
-	XMStoreFloat4(&mSkullAnimation.Keyframes[3].RotationQuat, q3);
-
-	mSkullAnimation.Keyframes[4].TimePos = 8.0f;
-	mSkullAnimation.Keyframes[4].Translation = XMFLOAT3(-7.0f, 0.0f, 0.0f);
-	mSkullAnimation.Keyframes[4].Scale = XMFLOAT3(0.25f, 0.25f, 0.25f);
-	XMStoreFloat4(&mSkullAnimation.Keyframes[4].RotationQuat, q0);
 }

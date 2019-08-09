@@ -13,18 +13,20 @@ Object::Object(ID3D12Device * device, ID3D12GraphicsCommandList * commandList, c
 	scale = { 1, 1, 1 };
 	rotation = { 0, 0, 0 };
 	position = { 0, 0, 0 };
+
 }
 
 Object::~Object()
 {
 }
 
-void Object::SetMeshName(const std::string& name)
+void Object::SetMesh(const std::string& name, const UINT boneCount)
 {
 	meshName = name;
+	animationFinalTransforms.resize(boneCount);
 }
 
-std::string Object::GetMeshName() const
+std::string Object::GetMesh() const
 {
 	return meshName;
 }
@@ -65,7 +67,9 @@ XMMATRIX Object::GetFinalTransform()
 
 void Object::Translation(const float x, const float y, const float z)
 {
-
+	position.x += x;
+	position.y += y;
+	position.z += z;
 }
 
 void Object::Roll(const float amount)
@@ -94,5 +98,16 @@ void Object::Draw(const Mesh* mesh)
 
 void Object::Update(const GameTimer & gt)
 {
+}
+
+void Object::UpdateAnimation(const Mesh* mesh, const float deltaTime)
+{
+	animationCurrentlyTime += deltaTime;
+	if (animationCurrentlyTime > mesh->animationData.GetClipEndTime(animationCurrentlyName))
+	{
+		animationCurrentlyTime = 0.f;
+	}
+
+	mesh->animationData.GetFinalTransforms(animationCurrentlyName, animationCurrentlyTime, animationFinalTransforms);
 }
 

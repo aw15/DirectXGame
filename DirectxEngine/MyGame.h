@@ -23,17 +23,22 @@ public:
 
 private:
 	virtual void OnResize()override;
-	virtual void Update(const GameTimer& gt)override;
+
 	virtual void Draw(const GameTimer& gt)override;
 
 	virtual void OnMouseDown(WPARAM btnState, int x, int y)override;
 	virtual void OnMouseUp(WPARAM btnState, int x, int y)override;
 	virtual void OnMouseMove(WPARAM btnState, int x, int y)override;
-
-	void OnKeyboardInput(const GameTimer& gt);
+	//Keyboard
+	virtual void OnKeyboardDown(WPARAM key)override;
+	virtual void OnKeyboardUp(WPARAM key)override;
+	//Update
+	virtual void Update(const GameTimer& gt)override;
 	void UpdateCamera(const GameTimer& gt);
 	void UpdateObjectCBs(const GameTimer& gt);
 	void UpdateMainPassCB(const GameTimer& gt);
+	void UpdateSkinnedCBs(const GameTimer& gt);
+
 
 	void BuildDescriptorHeaps();
 	void BuildConstantBufferViews();
@@ -45,8 +50,6 @@ private:
 	void BuildRenderItems();
 	void DrawRenderItems(ID3D12GraphicsCommandList* cmdList, const std::vector<Object*>& ritems);
 
-	//Animation
-	void DefineAnimation();
 
 private:
 
@@ -93,6 +96,5 @@ private:
 
 	//Animation
 	float mAnimTimePos = 0.0f;
-	BoneAnimation mSkullAnimation;
 
 };

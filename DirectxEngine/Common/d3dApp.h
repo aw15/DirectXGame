@@ -46,7 +46,8 @@ protected:
 	virtual void OnMouseDown(WPARAM btnState, int x, int y){ }
 	virtual void OnMouseUp(WPARAM btnState, int x, int y)  { }
 	virtual void OnMouseMove(WPARAM btnState, int x, int y){ }
-
+	virtual void OnKeyboardDown(WPARAM key) = 0;
+	virtual void OnKeyboardUp(WPARAM key) = 0;
 protected:
 
 	bool InitMainWindow();//win32창 초기화

@@ -359,17 +359,29 @@ LRESULT D3DApp::MsgProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		return 0;
     case WM_KEYUP:
-        if(wParam == VK_ESCAPE)
-        {
-            PostQuitMessage(0);
-        }
-        else if((int)wParam == VK_F2)
-            Set4xMsaaState(!m4xMsaaState);
-
+		if (wParam == VK_ESCAPE)
+		{
+			PostQuitMessage(0);
+		}
+		else if ((int)wParam == VK_F2)
+			Set4xMsaaState(!m4xMsaaState);
+		else
+			OnKeyboardUp(wParam);
+		return 0;
+	case WM_KEYDOWN:
+		OnKeyboardDown(wParam);
         return 0;
 	}
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);
+}
+
+void D3DApp::OnKeyboardDown(WPARAM key)
+{
+}
+
+void D3DApp::OnKeyboardUp(WPARAM key)
+{
 }
 
 bool D3DApp::InitMainWindow()

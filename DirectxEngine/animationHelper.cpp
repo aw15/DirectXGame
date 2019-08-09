@@ -159,18 +159,18 @@ void SkinnedData::GetFinalTransforms(const std::string& clipName, float timePos,
 	// is just its local bone transform.
 	toRootTransforms[0] = toParentTransforms[0];
 
-	// Now find the toRootTransform of the children.
-	for (UINT i = 1; i < numBones; ++i)
-	{
-		XMMATRIX toParent = XMLoadFloat4x4(&toParentTransforms[i]);
+	//// Now find the toRootTransform of the children.
+	//for (UINT i = 1; i < numBones; ++i)
+	//{
+	//	XMMATRIX toParent = XMLoadFloat4x4(&toParentTransforms[i]);
 
-		int parentIndex = mBoneHierarchy[i];
-		XMMATRIX parentToRoot = XMLoadFloat4x4(&toRootTransforms[parentIndex]);
+	//	int parentIndex = mBoneHierarchy[i];
+	//	XMMATRIX parentToRoot = XMLoadFloat4x4(&toRootTransforms[parentIndex]);
 
-		XMMATRIX toRoot = XMMatrixMultiply(toParent, parentToRoot);
+	//	XMMATRIX toRoot = XMMatrixMultiply(toParent, parentToRoot);
 
-		XMStoreFloat4x4(&toRootTransforms[i], toRoot);
-	}
+	//	XMStoreFloat4x4(&toRootTransforms[i], toRoot);
+	//}
 
 	// Premultiply by the bone offset transform to get the final transform.
 	for (UINT i = 0; i < numBones; ++i)

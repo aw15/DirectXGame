@@ -40,7 +40,6 @@ public:
 	D3D12_INDEX_BUFFER_VIEW IndexBufferView() const;
 	void DisposeUploaders();
 
-
 public:
 	std::string name;
 
@@ -61,6 +60,7 @@ public:
 
 	std::vector<SubMesh> subMeshArr;
 
+	//Animation
 	SkinnedData animationData;
-};
 
+};
