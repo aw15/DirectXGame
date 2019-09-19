@@ -38,16 +38,20 @@ bool Mesh::LoadMeshData(char * path, ComPtr<ID3D12Device> device, ComPtr<ID3D12G
 	vertices.reserve(size);
 	
 	float floatIgnore;
-
+	int boneIndex[4];
 	for (int i = 0; i < size; i++)
 	{
-		in >> temp.Pos.x >> temp.Pos.y >> temp.Pos.z>> floatIgnore;
+		in >> temp.Pos.x >> temp.Pos.y >> temp.Pos.z;// >> floatIgnore;
 	//	std::cout<< temp.Pos.x <<" " <<temp.Pos.y <<" "<< temp.Pos.z <<" "<< floatIgnore<<" "<<std::endl;
-	//	in >> ignore >> ignore >> ignore;
-	//	in >> ignore >> ignore;
-	//	in >> temp.BoneIndices[0] >> temp.BoneIndices[1] >> temp.BoneIndices[2] >> temp.BoneIndices[3];
-	//	std::cout << temp.BoneIndices[0] <<" "<< temp.BoneIndices[1] << " " << temp.BoneIndices[2] << " " << temp.BoneIndices[3]<<std::endl;
-	//	in >> temp.BoneWeights.x >> temp.BoneWeights.y >> temp.BoneWeights.z;
+		in >> ignore >> ignore >> ignore;
+		in >> ignore >> ignore;
+		in >> boneIndex[0] >> boneIndex[1] >> boneIndex[2] >> boneIndex[3];
+		temp.BoneIndices[0] = (BYTE)boneIndex[0];
+		temp.BoneIndices[1] = (BYTE)boneIndex[1];
+		temp.BoneIndices[2] = (BYTE)boneIndex[2];
+		temp.BoneIndices[3] = (BYTE)boneIndex[3];
+		//std::cout << boneIndex[0] <<" "<< boneIndex[1] << " " << boneIndex[2] << " " << boneIndex[3]<<std::endl;
+		in >> temp.BoneWeights.x >> temp.BoneWeights.y >> temp.BoneWeights.z;
 		//std::cout << temp.BoneWeights.x << " " << temp.BoneWeights.y << " " << temp.BoneWeights.z << std::endl;
 
 		temp.Color = { 0.3f, 1.f, 1.f ,1.f};

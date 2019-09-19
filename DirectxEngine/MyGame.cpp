@@ -27,15 +27,16 @@ bool MyGame::Initialize()
 	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
 	Mesh* mesh = new Mesh();
-	mesh->LoadMeshData("Model/vanguard.mesh",md3dDevice,mCommandList);
+	mesh->LoadMeshData("Model/Boxing_anim.fbxmesh",md3dDevice,mCommandList);
 	mesh->LoadAnimData("Model/Boxing_anim.fbxanim");
 	meshContainer["Guard"] = mesh;
 	mesh->name = "Guard";
 
 	Object* object = new Object(md3dDevice.Get(), mCommandList.Get(), cbIndex++);
 	object->SetMesh("Guard", meshContainer["Guard"]->animationData.BoneCount());
-	object->SetScale(0.5f, 0.5f, 0.5f);
-	object->SetPosition(0, -50, 0);
+	object->SetScale(0.001f, 0.001f, 0.001f);
+	object->SetRotation(0, 0, 0);
+	object->SetPosition(0, 0, 0);
 	mAllRitems.push_back(object);
 	mOpaqueRitems.push_back(mAllRitems[0]);
 
@@ -488,6 +489,7 @@ void MyGame::BuildPSOs()
 	opaquePsoDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
 	opaquePsoDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
 	opaquePsoDesc.DSVFormat = mDepthStencilFormat;
+	
 	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&mPSOs["opaque"])));
 
 

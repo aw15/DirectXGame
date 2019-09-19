@@ -139,6 +139,8 @@ void SkinnedData::Set(std::vector<int>& boneHierarchy,
 	mAnimations = animations;
 }
 
+
+
 void SkinnedData::GetFinalTransforms(const std::string& clipName, float timePos, std::vector<XMFLOAT4X4>& finalTransforms)const
 {
 	UINT numBones = mBoneOffsets.size();
@@ -148,7 +150,7 @@ void SkinnedData::GetFinalTransforms(const std::string& clipName, float timePos,
 	// Interpolate all the bones of this clip at the given time instance.
 	auto clip = mAnimations.find(clipName);
 	clip->second.Interpolate(timePos, toParentTransforms);
-
+	
 	//
 	// Traverse the hierarchy and transform all the bones to the root space.
 	//
@@ -157,19 +159,57 @@ void SkinnedData::GetFinalTransforms(const std::string& clipName, float timePos,
 
 	// The root bone has index 0.  The root bone has no parent, so its toRootTransform
 	// is just its local bone transform.
-	toRootTransforms[0] = toParentTransforms[0];
+
+
+	std::vector<bool> isVisit(numBones,false);
+
+
+
+
+	std::queue<int> boneIndex;
+
+
+	auto root = std::find(mBoneHierarchy.begin(), mBoneHierarchy.end(), -1);
+
+	int rootIndex = std::distance(mBoneHierarchy.begin(), root);
+	toRootTransforms[rootIndex] = toParentTransforms[rootIndex];
+
+	isVisit[rootIndex] = true;
+	boneIndex.push(rootIndex);
+
+	while (!boneIndex.empty())
+	{
+		int target = boneIndex.front();
+		boneIndex.pop();
+		for (UINT i = 0; i < numBones; ++i)
+		{
+			if (target == mBoneHierarchy[i] && !isVisit[i])
+			{
+				XMMATRIX toParent = XMLoadFloat4x4(&toParentTransforms[i]);
+
+				//int parentIndex = mBoneHierarchy[i];
+				XMMATRIX parentToRoot = XMLoadFloat4x4(&toRootTransforms[target]);
+
+				XMMATRIX toRoot = XMMatrixMultiply(toParent, parentToRoot);
+
+				XMStoreFloat4x4(&toRootTransforms[i], toRoot);
+				boneIndex.push(i);
+				isVisit[i] = true;
+			}
+		}
+	}
 
 	//// Now find the toRootTransform of the children.
-	//for (UINT i = 1; i < numBones; ++i)
+	//for (UINT i = 0; i < numBones; ++i)
 	//{
-	//	XMMATRIX toParent = XMLoadFloat4x4(&toParentTransforms[i]);
+	//			XMMATRIX toParent = XMLoadFloat4x4(&toParentTransforms[i]);
 
-	//	int parentIndex = mBoneHierarchy[i];
-	//	XMMATRIX parentToRoot = XMLoadFloat4x4(&toRootTransforms[parentIndex]);
+	//			//int parentIndex = mBoneHierarchy[i];
+	//			XMMATRIX parentToRoot = XMLoadFloat4x4(&toRootTransforms[rootIndex]);
 
-	//	XMMATRIX toRoot = XMMatrixMultiply(toParent, parentToRoot);
+	//			XMMATRIX toRoot = XMMatrixMultiply(toParent, parentToRoot);
 
-	//	XMStoreFloat4x4(&toRootTransforms[i], toRoot);
+	//			XMStoreFloat4x4(&toRootTransforms[i], toRoot);
 	//}
 
 	// Premultiply by the bone offset transform to get the final transform.

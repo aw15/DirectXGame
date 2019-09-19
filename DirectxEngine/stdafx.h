@@ -20,6 +20,7 @@
 #include <sstream>
 #include <cassert>
 #include<algorithm>
+#include<queue>
 #include<map>
 #include"common/MathHelper.h"
 #include "common/d3dUtil.h"
